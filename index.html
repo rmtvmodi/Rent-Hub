@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RentHub – Rent Before You Buy</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="index.html" class="logo">RentHub</a>
+        <ul class="nav-links" id="nav-links">
+            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="products.html">Browse Products</a></li>
+            <li><a href="about.html">About</a></li>
+            <li id="nav-auth"><a href="login.html">Login / Register</a></li>
+        </ul>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-controls="nav-links" aria-expanded="false">&#9776;</button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Rent What You Need. Own Nothing Extra.</h1>
+        <p>Find premium products, rent easily on flexible terms, and save more.</p>
+        <div class="hero-buttons">
+            <a href="products.html" class="btn primary">Explore Products</a>
+            <a href="register.html" class="btn secondary">Become a Lender</a>
+        </div>
+        <input type="text" id="home-search" class="search-bar" placeholder="Search for laptops, cameras, bicycles, projectors…" />
+    </section>
+
+    <!-- Category Cards -->
+    <section class="categories" style="padding:2.5rem 1.5rem; max-width:1200px; margin:auto; text-align:center;">
+        <h2 class="mb-1">Shop by Category</h2>
+        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:0.75rem; margin-top:1rem;">
+            <a href="products.html?category=Electronics" class="btn secondary">Electronics</a>
+            <a href="products.html?category=Cameras" class="btn secondary">Cameras</a>
+            <a href="products.html?category=Laptops" class="btn secondary">Laptops</a>
+            <a href="products.html?category=Bicycles" class="btn secondary">Bicycles</a>
+            <a href="products.html?category=Projectors" class="btn secondary">Projectors</a>
+            <a href="products.html?category=Tools" class="btn secondary">Tools</a>
+            <a href="products.html?category=Gaming" class="btn secondary">Gaming</a>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section id="featured-products" style="padding:2rem 1.5rem; max-width:1200px; margin:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+            <div>
+                <h2 style="margin:0; font-size:1.8rem;">Featured Products</h2>
+                <p style="margin:0.25rem 0 0; color:var(--color-text-secondary); font-size:0.95rem;">Top rated electronics and gear ready for immediate rent.</p>
+            </div>
+            <a href="products.html" class="btn" style="font-size:0.85rem; padding:0.4rem 0.85rem;">View All Products &rarr;</a>
+        </div>
+        <div id="featured-grid" class="grid" style="margin-top:1rem;"></div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" style="padding:2.5rem 1.5rem; max-width:1200px; margin:auto;">
+        <h2 class="text-center mb-1">How It Works</h2>
+        <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); margin-top:1.5rem;">
+            <div class="card text-center p-2">
+                <h3>1. Browse</h3>
+                <p>Find the product you need from trusted owners.</p>
+            </div>
+            <div class="card text-center p-2">
+                <h3>2. Book</h3>
+                <p>Select rental dates and submit your booking request.</p>
+            </div>
+            <div class="card text-center p-2">
+                <h3>3. Receive</h3>
+                <p>Pick up or get convenient doorstep delivery.</p>
+            </div>
+            <div class="card text-center p-2">
+                <h3>4. Return</h3>
+                <p>Enjoy your rental and return with zero hassle.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits -->
+    <section class="benefits" style="padding:2.5rem 1.5rem; max-width:1200px; margin:auto;">
+        <h2 class="text-center mb-1">Why Choose RentHub?</h2>
+        <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1.25rem; margin-top:1.5rem;">
+            <div class="card p-2 text-center">
+                <h3>Affordability</h3>
+                <p>Save money by renting top-tier gear instead of buying outright.</p>
+            </div>
+            <div class="card p-2 text-center">
+                <h3>Flexibility</h3>
+                <p>Rent for the exact days you need with transparent pricing.</p>
+            </div>
+            <div class="card p-2 text-center">
+                <h3>Convenience</h3>
+                <p>Easy bookings, responsive dashboard, and fast approvals.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive FAQ Section -->
+    <section class="faq-section" style="padding:2.5rem 1.5rem; max-width:900px; margin:auto;">
+        <div style="text-align:center; margin-bottom:2rem;">
+            <span class="badge" style="background:rgba(124, 108, 242, 0.15); color:var(--color-primary); border:1px solid rgba(124, 108, 242, 0.3); margin-bottom:0.5rem;">Help & Clarity</span>
+            <h2 style="font-size:1.8rem; margin:0.25rem 0 0.5rem;">Frequently Asked Questions</h2>
+            <p style="color:var(--color-text-secondary); font-size:0.95rem; margin:0;">Everything you need to know about the RentHub rental experience.</p>
+        </div>
+
+        <div class="faq-list">
+            <div class="faq-item">
+                <div class="faq-question">How does renting on RentHub work?</div>
+                <div class="faq-answer">
+                    Browse our catalog of verified equipment, pick your desired start and end dates, and submit a booking request. Once the item owner accepts your request, you can complete the simulated checkout to confirm and activate your rental.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">How are rental payments handled?</div>
+                <div class="faq-answer">
+                    RentHub features an integrated simulated checkout interface. When your booking is accepted, you can pay using simulated Card, UPI, or Net Banking options. Funds are held in escrow until pickup and return.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">What happens if an item is returned past the due date?</div>
+                <div class="faq-answer">
+                    If an item is returned after the agreed rental end date, the system automatically calculates a late return fee of 1.2× the daily rental rate for each overdue day. The owner inspects and confirms the return along with any assessed late fees.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Can I cancel my rental booking?</div>
+                <div class="faq-answer">
+                    Yes! You can cancel any booking request free of charge directly from your Customer Dashboard while it is in "Requested" or "Accepted" status prior to payment.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">How do I list my own products as an Owner?</div>
+                <div class="faq-answer">
+                    Create an account with the "Owner" role or log into your existing owner profile. Access the Owner Dashboard to list gear, set daily rates, upload photos, manage availability, review booking requests, and track earnings.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Compact About Section -->
+    <section class="about-compact">
+        <div class="card about-card" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:2rem; background:linear-gradient(135deg, var(--color-surface-card) 0%, rgba(124, 108, 242, 0.08) 100%); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:2.25rem;">
+            <div style="flex:2; min-width:280px;">
+                <span class="badge" style="background:rgba(45, 212, 191, 0.15); color:var(--color-secondary); margin-bottom:0.75rem; border:1px solid rgba(45, 212, 191, 0.3);">About RentHub</span>
+                <h2 style="margin-bottom:0.75rem; font-size:1.8rem; letter-spacing:-0.02em;">Rent Smart. Save More. Test Drive Any Product.</h2>
+                <p style="margin-bottom:1rem; font-size:1rem; color:var(--color-text-secondary); line-height:1.6;">
+                    RentHub – <em>“Rent Before You Buy”</em> is an online rental marketplace designed to make high-end technology, photography equipment, and lifestyle gear accessible to everyone without heavy upfront purchase commitments.
+                </p>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-top:1.25rem;">
+                    <div>
+                        <strong style="color:var(--color-text-primary); display:block; font-size:0.95rem;">✔ Verified Inventory</strong>
+                        <span style="color:var(--color-text-muted); font-size:0.85rem;">Inspected electronics, gear & tools</span>
+                    </div>
+                    <div>
+                        <strong style="color:var(--color-text-primary); display:block; font-size:0.95rem;">✔ Transparent Rates</strong>
+                        <span style="color:var(--color-text-muted); font-size:0.85rem;">Clear daily pricing with zero hidden fees</span>
+                    </div>
+                    <div>
+                        <strong style="color:var(--color-text-primary); display:block; font-size:0.95rem;">✔ 3 Dedicated Roles</strong>
+                        <span style="color:var(--color-text-muted); font-size:0.85rem;">Customer, Owner, and Admin workflows</span>
+                    </div>
+                </div>
+            </div>
+            <div style="flex:1; min-width:220px; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:1rem; border-left:1px solid var(--color-border); padding-left:2rem;">
+                <h4 style="margin:0; font-size:1.15rem; color:var(--color-text-primary);">Want to know our story?</h4>
+                <p style="margin:0; font-size:0.9rem; color:var(--color-text-secondary);">Learn about our mission, sustainable sharing model, and platform specifications.</p>
+                <a href="about.html" class="btn primary" style="width:100%; text-align:center;">Read Full About Page &rarr;</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <h3>RentHub</h3>
+            <p>&copy; 2026 RentHub – Rent Before You Buy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="js/storage.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/navbar.js"></script>
+</body>
+</html>

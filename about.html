@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About – RentHub</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo">RentHub</a>
+        <ul class="nav-links" id="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="products.html">Browse Products</a></li>
+            <li><a href="about.html" class="active">About</a></li>
+            <li id="nav-auth"><a href="login.html" id="login-link">Login / Register</a></li>
+        </ul>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-controls="nav-links" aria-expanded="false">&#9776;</button>
+    </nav>
+
+    <main style="padding:2.5rem 1.5rem 4rem;">
+        <section class="about-section card" style="max-width:850px; margin:auto;">
+            <h2>About RentHub</h2>
+            <p><strong>RentHub – “Rent Before You Buy”</strong> is a modern online rental marketplace designed to help people access premium electronics, photography gear, tools, and lifestyle equipment without the burden of full ownership.</p>
+            <p>Our mission is simple: promote sustainable consumption, save you money, and allow you to test-drive products in real life before committing to buying them.</p>
+            
+            <hr />
+
+            <h3 style="color:var(--color-primary); margin-bottom:1rem;">Three Unified Platform Roles</h3>
+            <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
+                <div style="background:var(--color-surface); padding:1.25rem; border-radius:var(--radius); border:1px solid var(--color-border);">
+                    <h4 style="color:var(--color-secondary);">Customer</h4>
+                    <p style="font-size:0.9rem; margin:0;">Browse products, manage wishlist, request rental dates, and track active bookings.</p>
+                </div>
+                <div style="background:var(--color-surface); padding:1.25rem; border-radius:var(--radius); border:1px solid var(--color-border);">
+                    <h4 style="color:var(--color-secondary);">Owner</h4>
+                    <p style="font-size:0.9rem; margin:0;">List items with daily rates, review booking requests, accept/reject rentals, and manage inventory.</p>
+                </div>
+                <div style="background:var(--color-surface); padding:1.25rem; border-radius:var(--radius); border:1px solid var(--color-border);">
+                    <h4 style="color:var(--color-secondary);">Admin</h4>
+                    <p style="font-size:0.9rem; margin:0;">Full platform overview, user management, inventory moderation, booking oversight, and metrics.</p>
+                </div>
+            </div>
+
+            <p style="font-size:0.9rem; color:var(--color-text-muted);">Built with modern semantic HTML5, high-contrast CSS3 design system, and modular vanilla JavaScript utilizing browser <code>localStorage</code> for deterministic state persistence.</p>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <h3>RentHub</h3>
+            <p>&copy; 2026 RentHub – Rent Before You Buy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="js/storage.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/navbar.js"></script>
+</body>
+</html>

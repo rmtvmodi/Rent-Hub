@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Owner Dashboard – RentHub</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo">RentHub</a>
+        <ul class="nav-links" id="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="products.html">Browse Products</a></li>
+            <li><a href="about.html">About</a></li>
+            <li id="nav-auth"><a href="login.html" id="login-link">Login / Register</a></li>
+        </ul>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-controls="nav-links" aria-expanded="false">&#9776;</button>
+    </nav>
+
+    <main class="dashboard">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+            <div>
+                <h1 style="font-size:2rem; margin-bottom:0.25rem;">Owner Dashboard</h1>
+                <p style="color:var(--color-text-secondary); margin:0;">Manage your listed products, review booking requests, and track rental earnings.</p>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <span style="font-size:0.9rem; color:var(--color-text-muted);">Logged in as:</span>
+                <span class="badge" style="background:rgba(45, 212, 191, 0.15); color:var(--color-secondary); font-weight:600;" id="owner-name">Owner</span>
+            </div>
+        </div>
+
+        <!-- Real-Time Metrics Summary Cards -->
+        <div id="summary-cards" style="margin-bottom:2.5rem;">
+            <div class="summary-card">
+                <h3>Total Listed Products</h3>
+                <p id="owner-total-products">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Pending Requests</h3>
+                <p id="owner-pending-requests" style="color:#FBBF24;">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Active Rentals</h3>
+                <p id="owner-active-rentals" style="color:var(--color-secondary);">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Completed Rentals</h3>
+                <p id="owner-completed-rentals">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Simulated Earnings</h3>
+                <p id="owner-total-earnings" style="color:var(--color-secondary);">₹0</p>
+            </div>
+        </div>
+
+        <!-- Product Performance Table -->
+        <section class="card" style="margin-bottom:2.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+                <div>
+                    <h3 style="margin:0; font-size:1.3rem;">Product Performance Summary</h3>
+                    <p style="margin:0.25rem 0 0; font-size:0.85rem; color:var(--color-text-muted);">Track rental frequency, earnings per item, and toggle public availability.</p>
+                </div>
+            </div>
+            <div id="product-performance-container" style="overflow-x:auto;"></div>
+        </section>
+
+        <!-- Booking Requests & Rental Workflow -->
+        <section class="card" style="margin-bottom:2.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+                <div>
+                    <h3 style="margin:0; font-size:1.3rem;">Booking Requests & Rental Lifecycle</h3>
+                    <p style="margin:0.25rem 0 0; font-size:0.85rem; color:var(--color-text-muted);">Review customer requests, accept rentals, and confirm returns with late-fee calculations.</p>
+                </div>
+            </div>
+            <div id="booking-requests" style="overflow-x:auto;"></div>
+        </section>
+
+        <!-- Add / Edit Product Form -->
+        <section id="add-product-section" class="card" style="margin-bottom:2.5rem; max-width:700px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3 id="form-heading" style="margin:0; font-size:1.3rem;">Add New Product</h3>
+                <button id="cancel-edit-btn" class="btn" style="display:none; padding:0.35rem 0.75rem; font-size:0.85rem;">Cancel Edit</button>
+            </div>
+            <form id="add-product-form" class="auth-form" style="max-width:100%;">
+                <label for="prod-title">Product Title
+                    <input type="text" id="prod-title" placeholder="e.g. Sony Alpha A7 IV Camera" required />
+                </label>
+                <label for="prod-desc">Description
+                    <textarea id="prod-desc" rows="3" placeholder="Describe specifications, condition, and included accessories" required></textarea>
+                </label>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <label for="prod-category">Category
+                        <select id="prod-category" required>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Cameras">Cameras</option>
+                            <option value="Laptops">Laptops</option>
+                            <option value="Bicycles">Bicycles</option>
+                            <option value="Projectors">Projectors</option>
+                            <option value="Tools">Tools</option>
+                            <option value="Gaming">Gaming</option>
+                        </select>
+                    </label>
+                    <label for="prod-price">Daily Rental Rate (₹)
+                        <input type="number" id="prod-price" min="1" placeholder="500" required />
+                    </label>
+                </div>
+                <label for="prod-image">Image URL
+                    <input type="url" id="prod-image" placeholder="https://images.unsplash.com/..." required />
+                </label>
+                <label for="prod-availability" style="display:inline-flex; flex-direction:row; align-items:center; gap:0.6rem; cursor:pointer; margin-top:0.25rem;">
+                    <input type="checkbox" id="prod-availability" checked style="width:1.2rem; height:1.2rem; cursor:pointer;" /> 
+                    <span style="font-weight:600;">Available for immediate rent</span>
+                </label>
+                <button type="submit" class="btn primary" id="submit-prod-btn" style="margin-top:1rem; width:100%;">Add Product to Marketplace</button>
+            </form>
+            <div id="add-product-message" class="message"></div>
+        </section>
+
+        <!-- My Products Cards Grid -->
+        <section style="margin-bottom:3rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3 style="margin:0; font-size:1.3rem;">My Listed Products</h3>
+                <span id="owner-prod-count" style="font-size:0.9rem; color:var(--color-text-muted);"></span>
+            </div>
+            <div class="product-grid grid" id="owner-products"></div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <h3>RentHub</h3>
+            <p>&copy; 2026 RentHub – Rent Before You Buy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="js/storage.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/owner.js"></script>
+    <script type="module" src="js/navbar.js"></script>
+</body>
+</html>

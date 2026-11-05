@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register – RentHub</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo">RentHub</a>
+        <ul class="nav-links" id="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="products.html">Browse Products</a></li>
+            <li><a href="about.html">About</a></li>
+            <li id="nav-auth"><a href="login.html" id="login-link">Login / Register</a></li>
+        </ul>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-controls="nav-links" aria-expanded="false">&#9776;</button>
+    </nav>
+
+    <main style="padding:2.5rem 1.5rem 4rem;">
+        <section class="auth-section card" style="max-width:480px; margin:auto;">
+            <h2 class="text-center" style="margin-bottom:1.5rem;">Create an Account</h2>
+            <form id="register-form" class="auth-form">
+                <label for="reg-name">Full Name
+                    <input type="text" id="reg-name" placeholder="John Doe" required />
+                </label>
+                <label for="reg-email">Email Address
+                    <input type="email" id="reg-email" placeholder="john@example.com" required />
+                </label>
+                <label for="reg-phone">Phone Number
+                    <input type="tel" id="reg-phone" placeholder="9876543210" required />
+                </label>
+                <label for="reg-password">Password
+                    <input type="password" id="reg-password" placeholder="••••••••" required />
+                </label>
+                <label for="reg-confirm">Confirm Password
+                    <input type="password" id="reg-confirm" placeholder="••••••••" required />
+                </label>
+                <fieldset style="margin-top:0.5rem; border:1px solid var(--color-border); padding:0.75rem 1rem; border-radius:var(--radius);">
+                    <legend style="padding:0 0.5rem; font-size:0.85rem; color:var(--color-text-secondary);">Select Account Type</legend>
+                    <label style="display:inline-flex; flex-direction:row; align-items:center; gap:0.5rem; cursor:pointer;">
+                        <input type="radio" name="role" value="customer" checked required /> Customer (Rent items)
+                    </label>
+                    <label style="display:inline-flex; flex-direction:row; align-items:center; gap:0.5rem; margin-left:1.5rem; cursor:pointer;">
+                        <input type="radio" name="role" value="owner" /> Owner (Lend items)
+                    </label>
+                </fieldset>
+                <button type="submit" class="btn primary" style="width:100%; margin-top:0.5rem;">Register</button>
+            </form>
+            <div id="reg-message" class="message text-center"></div>
+
+            <p class="text-center" style="font-size:0.9rem; margin-top:1rem;">Already have an account? <a href="login.html">Sign in here</a></p>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <h3>RentHub</h3>
+            <p>&copy; 2026 RentHub – Rent Before You Buy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="js/storage.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/navbar.js"></script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment – RentHub</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo">RentHub</a>
+        <ul class="nav-links" id="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="products.html">Browse Products</a></li>
+            <li><a href="about.html">About</a></li>
+            <li id="nav-auth"><a href="login.html" id="login-link">Login / Register</a></li>
+        </ul>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-controls="nav-links" aria-expanded="false">&#9776;</button>
+    </nav>
+
+    <main class="dashboard" style="max-width:800px; margin:auto; padding:2.5rem 1.5rem 4rem;">
+        <h2 class="text-center">Simulated Payment Gateway</h2>
+        <p class="text-center" style="color:var(--color-text-secondary); margin-bottom:1.5rem;">This is a simulated payment gateway for demonstration and college testing purposes.</p>
+        <div id="payment-container"></div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <h3>RentHub</h3>
+            <p>&copy; 2026 RentHub – Rent Before You Buy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="js/storage.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/payment.js"></script>
+    <script type="module" src="js/navbar.js"></script>
+</body>
+</html>

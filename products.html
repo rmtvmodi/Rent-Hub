@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Browse Products – RentHub</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <!-- Navigation bar -->
+    <nav class="navbar">
+        <a href="index.html" class="logo">RentHub</a>
+        <ul class="nav-links" id="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="products.html" class="active">Browse Products</a></li>
+            <li><a href="about.html">About</a></li>
+            <li id="nav-auth"><a href="login.html">Login / Register</a></li>
+        </ul>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-controls="nav-links" aria-expanded="false">&#9776;</button>
+    </nav>
+
+    <!-- Browse and Filter Controls -->
+    <section class="browse-controls" style="padding:1.5rem 1.5rem 1rem; max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; gap:1rem; align-items:center;">
+        <input type="text" id="search-input" placeholder="Search by product name or keyword…" class="search-bar" style="flex:2; min-width:220px;" />
+        <select id="category-filter" style="flex:1; min-width:150px;">
+            <option value="">All Categories</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Cameras">Cameras</option>
+            <option value="Laptops">Laptops</option>
+            <option value="Bicycles">Bicycles</option>
+            <option value="Projectors">Projectors</option>
+            <option value="Tools">Tools</option>
+            <option value="Gaming">Gaming</option>
+        </select>
+        <select id="price-filter" style="flex:1; min-width:140px;">
+            <option value="">All Prices</option>
+            <option value="0-500">₹0 – ₹500</option>
+            <option value="501-1000">₹501 – ₹1000</option>
+            <option value="1001-2000">₹1001 – ₹2000</option>
+            <option value="2001-99999">₹2000+</option>
+        </select>
+        <select id="availability-filter" style="flex:1; min-width:150px;">
+            <option value="">All Availability</option>
+            <option value="available">Available Only</option>
+            <option value="unavailable">Rented / Unavailable</option>
+        </select>
+        <select id="sort-select" style="flex:1; min-width:150px;">
+            <option value="">Sort By</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="rating-desc">Highest Rated</option>
+            <option value="name-asc">Name: A – Z</option>
+        </select>
+    </section>
+
+    <!-- Results Status Bar -->
+    <div style="padding:0.25rem 1.5rem 1rem; max-width:1200px; margin:auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+        <span id="results-count" style="font-size:0.9rem; color:var(--color-text-muted);">Loading products…</span>
+        <button id="clear-filters-btn" class="btn" style="font-size:0.8rem; padding:0.25rem 0.6rem; display:none;">Clear Filters</button>
+    </div>
+
+    <!-- Product Grid -->
+    <section id="product-grid" class="product-grid grid" style="padding:0 1.5rem 3rem; max-width:1200px; margin:0 auto;">
+        <!-- Product cards will be injected here -->
+    </section>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <h3>RentHub</h3>
+            <p>&copy; 2026 RentHub – Rent Before You Buy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="js/storage.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/products.js"></script>
+    <script type="module" src="js/navbar.js"></script>
+</body>
+</html>

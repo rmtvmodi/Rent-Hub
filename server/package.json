@@ -1,0 +1,44 @@
+{
+  "name": "renthub-backend",
+  "version": "1.0.0",
+  "description": "Backend REST API server for RentHub – Rent Before You Buy",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node seeder/seeder.js",
+    "seed:destroy": "node seeder/seeder.js -d",
+    "test": "node test_concurrency_security.js",
+    "test:all": "node test_models.js && node test_auth.js && node test_marketplace.js && node test_frontend_integration.js && node verify_db_persistence.js && node test_concurrency_security.js && node test_browser_e2e.js",
+    "test:browser": "node test_browser_e2e.js",
+    "test:security": "node test_concurrency_security.js",
+    "test:db": "node verify_db_persistence.js",
+    "test:restart": "node test_restart_persistence.js"
+  },
+  "keywords": [
+    "renthub",
+    "rental",
+    "marketplace",
+    "nodejs",
+    "express",
+    "mongodb",
+    "mongoose",
+    "jwt",
+    "bcrypt"
+  ],
+  "author": "RentHub Engineering Team",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.16.0"
+  }
+}

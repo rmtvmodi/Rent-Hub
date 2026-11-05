@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard – RentHub</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo">RentHub</a>
+        <ul class="nav-links" id="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="products.html">Browse Products</a></li>
+            <li><a href="about.html">About</a></li>
+            <li id="nav-auth"><a href="login.html" id="login-link">Login / Register</a></li>
+        </ul>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-controls="nav-links" aria-expanded="false">&#9776;</button>
+    </nav>
+
+    <main class="dashboard">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+            <div>
+                <h1 style="font-size:2rem; margin-bottom:0.25rem;">Admin Management Portal</h1>
+                <p style="color:var(--color-text-secondary); margin:0;">Platform-wide inventory moderation, user management, bookings oversight, and review control.</p>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <span style="font-size:0.9rem; color:var(--color-text-muted);">Administrator:</span>
+                <span class="badge" style="background:rgba(124, 108, 242, 0.15); color:var(--color-primary); font-weight:600;" id="admin-name">Admin</span>
+            </div>
+        </div>
+
+        <!-- Summary cards -->
+        <div id="summary-cards" style="margin-bottom:2.5rem;">
+            <div class="summary-card">
+                <h3>Total Registered Users</h3>
+                <p id="total-users">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Total Listed Products</h3>
+                <p id="total-products">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Approved Products</h3>
+                <p id="total-approved" style="color:var(--color-secondary);">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Platform Bookings</h3>
+                <p id="total-bookings">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Customer Reviews</h3>
+                <p id="total-reviews">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Total Platform Volume</h3>
+                <p id="total-platform-volume" style="color:var(--color-secondary);">₹0</p>
+            </div>
+        </div>
+
+        <!-- User Management -->
+        <section id="user-management" class="card" style="margin-bottom:2.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+                <div>
+                    <h3 style="margin:0; font-size:1.3rem;">User Management</h3>
+                    <p style="margin:0.25rem 0 0; font-size:0.85rem; color:var(--color-text-muted);">View all system accounts across Customer, Owner, and Administrator roles.</p>
+                </div>
+                <div class="table-toolbar">
+                    <input type="text" id="user-search" placeholder="Search user name or email…" style="padding:0.4rem 0.75rem; font-size:0.85rem;" />
+                    <select id="user-role-filter" style="padding:0.4rem 0.75rem; font-size:0.85rem;">
+                        <option value="">All Roles</option>
+                        <option value="customer">Customers</option>
+                        <option value="owner">Owners</option>
+                        <option value="admin">Admins</option>
+                    </select>
+                </div>
+            </div>
+            <div id="admin-users" style="overflow-x:auto;"></div>
+        </section>
+
+        <!-- Product Management & Moderation -->
+        <section id="product-management" class="card" style="margin-bottom:2.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+                <div>
+                    <h3 style="margin:0; font-size:1.3rem;">Product Inventory Moderation</h3>
+                    <p style="margin:0.25rem 0 0; font-size:0.85rem; color:var(--color-text-muted);">Moderate product listings with Approval / Rejection controls, inspect rates, and edit details.</p>
+                </div>
+                <div class="table-toolbar">
+                    <input type="text" id="product-search" placeholder="Search product title…" style="padding:0.4rem 0.75rem; font-size:0.85rem;" />
+                    <select id="product-approval-filter" style="padding:0.4rem 0.75rem; font-size:0.85rem;">
+                        <option value="">All Approval Statuses</option>
+                        <option value="approved">Approved</option>
+                        <option value="pending">Pending</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Add / Edit Product Form for Admin -->
+            <section id="add-product-section" style="background:var(--color-surface); padding:1.25rem; border-radius:var(--radius); border:1px solid var(--color-border); margin-bottom:1.5rem; max-width:650px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                    <h4 id="admin-prod-form-heading" style="margin:0; color:var(--color-secondary);">Add / Edit Product (Admin Mode)</h4>
+                    <button id="admin-cancel-edit-btn" class="btn" style="display:none; padding:0.25rem 0.6rem; font-size:0.8rem;">Cancel</button>
+                </div>
+                <form id="add-product-form" class="auth-form" style="max-width:100%;">
+                    <label for="prod-title">Title
+                        <input type="text" id="prod-title" required />
+                    </label>
+                    <label for="prod-desc">Description
+                        <textarea id="prod-desc" rows="3" required></textarea>
+                    </label>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                        <label for="prod-category">Category
+                            <select id="prod-category" required>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Cameras">Cameras</option>
+                                <option value="Laptops">Laptops</option>
+                                <option value="Bicycles">Bicycles</option>
+                                <option value="Projectors">Projectors</option>
+                                <option value="Tools">Tools</option>
+                                <option value="Gaming">Gaming</option>
+                            </select>
+                        </label>
+                        <label for="prod-price">Daily Rate (₹)
+                            <input type="number" id="prod-price" min="1" required />
+                        </label>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                        <label for="prod-owner">Assigned Owner
+                            <select id="prod-owner" required></select>
+                        </label>
+                        <label for="prod-approval">Approval Status
+                            <select id="prod-approval" required>
+                                <option value="approved">Approved</option>
+                                <option value="pending">Pending</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </label>
+                    </div>
+                    <label for="prod-image">Image URL
+                        <input type="url" id="prod-image" placeholder="https://images.unsplash.com/..." required />
+                    </label>
+                    <label for="prod-availability" style="display:inline-flex; flex-direction:row; align-items:center; gap:0.5rem; cursor:pointer; margin-top:0.25rem;">
+                        <input type="checkbox" id="prod-availability" checked /> Available for Rent
+                    </label>
+                    <button type="submit" id="admin-prod-submit-btn" class="btn primary" style="margin-top:0.75rem;">Save Product</button>
+                </form>
+                <div id="add-product-message" class="message"></div>
+            </section>
+
+            <div id="admin-products" style="overflow-x:auto;"></div>
+        </section>
+
+        <!-- Booking Management -->
+        <section id="booking-management" class="card" style="margin-bottom:2.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+                <div>
+                    <h3 style="margin:0; font-size:1.3rem;">All Platform Bookings</h3>
+                    <p style="margin:0.25rem 0 0; font-size:0.85rem; color:var(--color-text-muted);">Inspect booking lifecycles, rental timelines, and administrative status override.</p>
+                </div>
+                <div class="table-toolbar">
+                    <input type="text" id="booking-search" placeholder="Search by ID or customer…" style="padding:0.4rem 0.75rem; font-size:0.85rem;" />
+                    <select id="booking-status-filter" style="padding:0.4rem 0.75rem; font-size:0.85rem;">
+                        <option value="">All Statuses</option>
+                        <option value="Requested">Requested</option>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Active Rental">Active Rental</option>
+                        <option value="Return Requested">Return Requested</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                </div>
+            </div>
+            <div id="admin-bookings" style="overflow-x:auto;"></div>
+        </section>
+
+        <!-- Review Management -->
+        <section id="review-management" class="card" style="margin-bottom:3rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+                <div>
+                    <h3 style="margin:0; font-size:1.3rem;">Customer Reviews Moderation</h3>
+                    <p style="margin:0.25rem 0 0; font-size:0.85rem; color:var(--color-text-muted);">Moderate customer ratings and delete spam or offensive feedback.</p>
+                </div>
+                <div class="table-toolbar">
+                    <input type="text" id="review-search" placeholder="Search review comment or product…" style="padding:0.4rem 0.75rem; font-size:0.85rem;" />
+                </div>
+            </div>
+            <div id="admin-reviews" style="overflow-x:auto;"></div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <h3>RentHub</h3>
+            <p>&copy; 2026 RentHub – Rent Before You Buy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="js/storage.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/admin.js"></script>
+    <script type="module" src="js/navbar.js"></script>
+</body>
+</html>
