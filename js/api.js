@@ -22,12 +22,7 @@ function resolveApiBaseUrl() {
         }
     }
 
-    // 3. Environment/config-file API URL (served by Express from PUBLIC_API_URL or configured in js/config.js)
-    if (FRONTEND_CONFIG && FRONTEND_CONFIG.apiUrl) {
-        return FRONTEND_CONFIG.apiUrl.trim().replace(/\/+$/, '');
-    }
-
-    // 4. Local-only developer override via localStorage (never honored on non-localhost production hosts)
+    // 3. Local-only developer override via localStorage (never honored on non-localhost production hosts)
     const { protocol, hostname, port } = window.location || {};
     const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
     if (isLocalHost) {
@@ -41,7 +36,7 @@ function resolveApiBaseUrl() {
         }
     }
 
-    // 5. Local static dev server (Live Server / Python http.server / file://) targets local backend
+    // 4. Local static dev server (Live Server / Python http.server / file://) targets local backend
     const devPorts = (FRONTEND_CONFIG && Array.isArray(FRONTEND_CONFIG.devStaticPorts))
         ? FRONTEND_CONFIG.devStaticPorts
         : ['5500', '8000', '3000', '5173', '4173'];
@@ -50,7 +45,12 @@ function resolveApiBaseUrl() {
         return (FRONTEND_CONFIG && FRONTEND_CONFIG.devApiUrl) || 'http://localhost:5000/api';
     }
 
-    // 6. Default: same-origin /api for both production and Express-served local development
+    // 5. Configured production API URL (from js/config.js or Express /js/config.js PUBLIC_API_URL)
+    if (!isLocalHost && FRONTEND_CONFIG && FRONTEND_CONFIG.apiUrl) {
+        return FRONTEND_CONFIG.apiUrl.trim().replace(/\/+$/, '');
+    }
+
+    // 6. Default: same-origin /api for Express-served local development and monolith deployments
     return '/api';
 }
 
