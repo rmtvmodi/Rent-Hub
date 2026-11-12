@@ -1,6 +1,6 @@
 // server/config/db.js
 // MongoDB connection configuration using Mongoose with connection state tracking
-
+import dns from 'node:dns';
 import mongoose from 'mongoose';
 
 // Track connection diagnostics
@@ -12,13 +12,37 @@ export const dbState = {
     name: null
 };
 
+// Apply public DNS workaround only in local non-production environments when needed for SRV lookups
+if (process.env.NODE_ENV !== 'production' && process.env.DISABLE_PUBLIC_DNS !== 'true') {
+    dns.setServers(['8.8.8.8', '1.1.1.1']);
+}
+
+/**
+ * Redact MongoDB credentials or full connection strings from log/error text.
+ * Never expose username, password, or complete URI in logs.
+ * @param {string} text
+ * @returns {string}
+ */
+export const redactMongoCredentials = (text) => {
+    if (!text || typeof text !== 'string') return '';
+    return text.replace(/(mongodb(?:\+srv)?:\/\/)([^/\s@]+)@/gi, '$1***:***@');
+};
+
 export const connectDB = async () => {
-    const mongoURI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/renthub';
+    const isProduction = process.env.NODE_ENV === 'production';
+    const mongoURI = process.env.MONGO_URI || (isProduction ? '' : 'mongodb://127.0.0.1:27017/renthub');
+
+    if (!mongoURI) {
+        dbState.status = 'failed';
+        dbState.lastError = 'MONGO_URI environment variable is missing.';
+        throw new Error('FATAL: MONGO_URI environment variable is required in production.');
+    }
+
     dbState.status = 'connecting';
 
     try {
         const conn = await mongoose.connect(mongoURI, {
-            serverSelectionTimeoutMS: 5000 // 5 seconds timeout for friendly dev feedback
+            serverSelectionTimeoutMS: isProduction ? 10000 : 5000
         });
 
         dbState.status = 'connected';
@@ -27,18 +51,24 @@ export const connectDB = async () => {
         dbState.host = conn.connection.host;
         dbState.name = conn.connection.name;
 
-        console.log(`[RentHub DB] MongoDB Connected successfully: ${conn.connection.host}/${conn.connection.name}`);
+        console.log(`[RentHub DB] MongoDB Connected successfully (${conn.connection.name || 'database'})`);
         return conn;
     } catch (error) {
+        const safeMessage = redactMongoCredentials(error.message || 'Connection failed');
         dbState.status = 'failed';
-        dbState.lastError = error.message;
+        dbState.lastError = safeMessage;
         dbState.host = null;
         dbState.name = null;
 
-        console.warn(`[RentHub DB WARNING] Could not establish live connection to MongoDB at: ${mongoURI}`);
-        console.warn(`[RentHub DB DETAILS] Error: ${error.message}`);
-        console.warn(`[RentHub DB ACTION REQUIRED] If using local MongoDB, ensure MongoDB service is started (e.g. net start MongoDB).`);
-        console.warn(`                              If using cloud database, supply your MongoDB Atlas connection string in server/.env`);
+        console.error(`[RentHub DB ERROR] Could not establish connection to MongoDB.`);
+        console.error(`[RentHub DB DETAILS] Error: ${safeMessage}`);
+        if (!isProduction) {
+            console.warn(`[RentHub DB ACTION REQUIRED] Ensure MongoDB is running or configure MONGO_URI in server/.env`);
+        }
+
+        if (isProduction) {
+            throw new Error(`MongoDB connection failed in production: ${safeMessage}`);
+        }
         return null;
     }
 };

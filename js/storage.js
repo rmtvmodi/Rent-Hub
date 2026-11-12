@@ -4,20 +4,13 @@
 
 const STORAGE_KEY = 'renthub_data';
 
-/** Initialize the storage structure if it does not exist.
- *  Preloads demo users and sample products on first run.
+/** Initialize the local cache structure if it does not exist.
+ *  Never stores hardcoded user credentials or plaintext passwords.
  */
 function initStorage() {
     if (!localStorage.getItem(STORAGE_KEY)) {
         const initialData = {
-            users: [
-                // Demo Customer
-                { user_id: 'user_cust_demo', name: 'Demo Customer', email: 'customer@example.com', phone: '1234567890', password: 'cust123', role: 'customer' },
-                // Demo Owner
-                { user_id: 'user_owner_demo', name: 'Demo Owner', email: 'owner@example.com', phone: '0987654321', password: 'owner123', role: 'owner' },
-                // Demo Admin
-                { user_id: 'user_admin_demo', name: 'Demo Admin', email: 'admin@example.com', phone: '5555555555', password: 'admin123', role: 'admin' }
-            ],
+            users: [],
             products: [
                 { product_id: 'prod_dell_01', owner_id: 'user_owner_demo', category: 'Laptops', title: 'Dell Latitude 7420 Laptop', description: 'Intel i7 11th Gen, 16GB RAM, 512GB NVMe SSD, FHD display. Perfect for productivity and coding.', price_per_day: 800, availability: true, approval_status: 'approved', image: 'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?auto=format&fit=crop&w=600&q=80', rating: 5 },
                 { product_id: 'prod_canon_02', owner_id: 'user_owner_demo', category: 'Cameras', title: 'Canon EOS 90D DSLR Camera', description: '32.5 MP APS-C sensor, 4K video, dual pixel AF. Includes 18-135mm lens, battery and bag.', price_per_day: 1200, availability: true, approval_status: 'approved', image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80', rating: 5 },
@@ -34,11 +27,29 @@ function initStorage() {
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(initialData));
     } else {
-        // Migration for existing storage without newer fields
+        // Migration: ensure newer fields and purge any legacy hardcoded demo credentials or plaintext passwords
         try {
             const db = JSON.parse(localStorage.getItem(STORAGE_KEY));
             let modified = false;
             if (!db.notifications) { db.notifications = []; modified = true; }
+            if (Array.isArray(db.users)) {
+                const legacyDemoIds = new Set(['user_cust_demo', 'user_owner_demo', 'user_admin_demo']);
+                const cleanedUsers = db.users
+                    .filter(u => !legacyDemoIds.has(u.user_id))
+                    .map(u => {
+                        if ('password' in u) {
+                            const copy = { ...u };
+                            delete copy.password;
+                            modified = true;
+                            return copy;
+                        }
+                        return u;
+                    });
+                if (cleanedUsers.length !== db.users.length) {
+                    db.users = cleanedUsers;
+                    modified = true;
+                }
+            }
             if (db.products) {
                 db.products.forEach(p => {
                     if (!p.approval_status) {

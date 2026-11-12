@@ -141,10 +141,12 @@ async function runBrowserTests() {
 
         await test('Browser Form: Customer logs in via login.html and redirects to customer-dashboard.html', async () => {
             await page.setViewport({ width: 1280, height: 800 });
-            await page.goto(`${BASE_URL}/login.html`, { waitUntil: 'domcontentloaded' });
             await page.evaluate(() => localStorage.clear());
+            await page.goto(`${BASE_URL}/login.html`, { waitUntil: 'networkidle0' });
 
+            await page.focus('#login-email');
             await page.type('#login-email', 'customer@example.com');
+            await page.focus('#login-password');
             await page.type('#login-password', 'cust123');
             await page.click('#login-form button[type="submit"]');
 
@@ -158,29 +160,47 @@ async function runBrowserTests() {
         });
 
         await test('Browser Form: Owner logs in via login.html and redirects to owner-dashboard.html', async () => {
-            await page.goto(`${BASE_URL}/login.html`, { waitUntil: 'domcontentloaded' });
-            await page.evaluate(() => localStorage.clear());
+            const ownerPage = await browser.newPage();
+            try {
+                await ownerPage.setViewport({ width: 1280, height: 800 });
+                await ownerPage.goto(`${BASE_URL}/login.html`, { waitUntil: 'networkidle0' });
+                await ownerPage.evaluate(() => localStorage.clear());
+                await ownerPage.reload({ waitUntil: 'networkidle0' });
 
-            await page.type('#login-email', 'owner@example.com');
-            await page.type('#login-password', 'owner123');
-            await page.click('#login-form button[type="submit"]');
+                await ownerPage.focus('#login-email');
+                await ownerPage.type('#login-email', 'owner@example.com');
+                await ownerPage.focus('#login-password');
+                await ownerPage.type('#login-password', 'owner123');
+                await ownerPage.click('#login-form button[type="submit"]');
 
-            await page.waitForFunction(() => window.location.pathname.includes('owner-dashboard.html'), { timeout: 15000 });
-            const currentUrl = page.url();
-            assert.ok(currentUrl.includes('owner-dashboard.html'), `Redirect URL '${currentUrl}' must be owner-dashboard.html`);
+                await ownerPage.waitForFunction(() => window.location.pathname.includes('owner-dashboard.html'), { timeout: 15000 });
+                const currentUrl = ownerPage.url();
+                assert.ok(currentUrl.includes('owner-dashboard.html'), `Redirect URL '${currentUrl}' must be owner-dashboard.html`);
+            } finally {
+                await ownerPage.close();
+            }
         });
 
         await test('Browser Form: Admin logs in via login.html and redirects to admin-dashboard.html', async () => {
-            await page.goto(`${BASE_URL}/login.html`, { waitUntil: 'domcontentloaded' });
-            await page.evaluate(() => localStorage.clear());
+            const adminPage = await browser.newPage();
+            try {
+                await adminPage.setViewport({ width: 1280, height: 800 });
+                await adminPage.goto(`${BASE_URL}/login.html`, { waitUntil: 'networkidle0' });
+                await adminPage.evaluate(() => localStorage.clear());
+                await adminPage.reload({ waitUntil: 'networkidle0' });
 
-            await page.type('#login-email', 'admin@example.com');
-            await page.type('#login-password', 'admin123');
-            await page.click('#login-form button[type="submit"]');
+                await adminPage.focus('#login-email');
+                await adminPage.type('#login-email', 'admin@example.com');
+                await adminPage.focus('#login-password');
+                await adminPage.type('#login-password', 'admin123');
+                await adminPage.click('#login-form button[type="submit"]');
 
-            await page.waitForFunction(() => window.location.pathname.includes('admin-dashboard.html'), { timeout: 15000 });
-            const currentUrl = page.url();
-            assert.ok(currentUrl.includes('admin-dashboard.html'), `Redirect URL '${currentUrl}' must be admin-dashboard.html`);
+                await adminPage.waitForFunction(() => window.location.pathname.includes('admin-dashboard.html'), { timeout: 15000 });
+                const currentUrl = adminPage.url();
+                assert.ok(currentUrl.includes('admin-dashboard.html'), `Redirect URL '${currentUrl}' must be admin-dashboard.html`);
+            } finally {
+                await adminPage.close();
+            }
         });
 
         // --- STEP 4: INTERACTIVE PRODUCT SEARCH & FILTERING IN BROWSER ---

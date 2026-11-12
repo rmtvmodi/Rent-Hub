@@ -3,7 +3,6 @@
 // Integrates with Express JWT backend with offline-resilient localStorage caching.
 
 import {
-    genId, addUser, findUserByEmail, findUserById,
     getUserNotifications, markNotificationRead, markAllNotificationsRead
 } from "./storage.js";
 import { api, setStoredToken, getStoredToken, clearStoredAuth } from "./api.js";
@@ -63,6 +62,7 @@ export async function verifyBackendSession() {
     try {
         const res = await api.get('/auth/me');
         if (res && res.success && res.user) {
+            if (!getStoredToken()) return null; // Ignore stale response if session was cleared while in-flight
             const freshUser = res.user;
             if (!freshUser.isActive && freshUser.isActive !== undefined) {
                 alert('Your account has been deactivated by an administrator.');
@@ -73,8 +73,8 @@ export async function verifyBackendSession() {
             return freshUser;
         }
     } catch (err) {
-        if (err.status === 401) {
-            console.warn('[RentHub Auth] Token verification failed: unauthorized or expired.');
+        if (err.status === 401 || err.status === 403) {
+            console.warn('[RentHub Auth] Session rejected by backend (unauthorized, expired, or deactivated).');
             clearCurrentUser(true);
             return null;
         }
@@ -288,7 +288,7 @@ export async function handleRegister(event) {
     messageDiv.textContent = "Creating account...";
 
     try {
-        const res = await api.post('/auth/register', {
+        await api.post('/auth/register', {
             name,
             email,
             phone,
@@ -296,47 +296,12 @@ export async function handleRegister(event) {
             role // 'customer' or 'owner' (backend blocks 'admin')
         });
 
-        // Backup to localStorage for hybrid offline demo support
-        const newUser = {
-            user_id: res.user ? (res.user.user_id || res.user._id) : genId("user"),
-            name,
-            email,
-            phone,
-            password,
-            role
-        };
-        addUser(newUser);
-
         messageDiv.style.color = "var(--color-secondary)";
         messageDiv.textContent = "Registration successful! You may now log in.";
         setTimeout(() => {
             window.location.href = "login.html";
         }, 1200);
     } catch (err) {
-        // If backend is offline, support offline mode with warning
-        if (err.isNetworkError) {
-            if (findUserByEmail(email)) {
-                messageDiv.style.color = "#FB7185";
-                messageDiv.textContent = "An account with this email already exists.";
-                return;
-            }
-            const newUser = {
-                user_id: genId("user"),
-                name,
-                email,
-                phone,
-                password,
-                role
-            };
-            addUser(newUser);
-            messageDiv.style.color = "var(--color-secondary)";
-            messageDiv.textContent = "Registered in local offline storage (Backend offline). You may now log in.";
-            setTimeout(() => {
-                window.location.href = "login.html";
-            }, 1200);
-            return;
-        }
-
         messageDiv.style.color = "#FB7185";
         messageDiv.textContent = err.message || "Registration failed. Please check your details.";
     }
@@ -362,7 +327,7 @@ export async function handleLogin(event) {
     try {
         const res = await api.post('/auth/login', { email, password });
 
-        if (res && res.success && res.user) {
+        if (res && res.success && res.user && res.token) {
             const user = res.user;
             const token = res.token;
             setCurrentUser(user, token);
@@ -387,33 +352,10 @@ export async function handleLogin(event) {
             }, 500);
             return;
         }
-    } catch (err) {
-        // If network error, check local storage fallback
-        if (err.isNetworkError) {
-            const localUser = findUserByEmail(email);
-            if (localUser && localUser.password === password) {
-                setCurrentUser(localUser);
-                messageDiv.style.color = "var(--color-secondary)";
-                messageDiv.textContent = "Logged in using local offline credentials (Backend offline).";
-                setTimeout(() => {
-                    switch (localUser.role) {
-                        case "customer":
-                            window.location.href = "customer-dashboard.html";
-                            break;
-                        case "owner":
-                            window.location.href = "owner-dashboard.html";
-                            break;
-                        case "admin":
-                            window.location.href = "admin-dashboard.html";
-                            break;
-                        default:
-                            window.location.href = "index.html";
-                    }
-                }, 500);
-                return;
-            }
-        }
 
+        messageDiv.style.color = "#FB7185";
+        messageDiv.textContent = "Authentication failed. Missing session token.";
+    } catch (err) {
         messageDiv.style.color = "#FB7185";
         messageDiv.textContent = err.message || "Invalid email or password.";
     }

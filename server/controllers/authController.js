@@ -138,7 +138,15 @@ export const login = async (req, res, next) => {
             });
         }
 
-        // 4. Generate JWT token
+        // 4. Reject deactivated user accounts
+        if (user.isActive === false) {
+            return res.status(403).json({
+                success: false,
+                message: 'Your account has been deactivated. Please contact an administrator.'
+            });
+        }
+
+        // 5. Generate JWT token
         const token = generateToken(user);
 
         // 5. Return sanitized profile and token

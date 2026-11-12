@@ -28,7 +28,7 @@ let liveAdminBookings = null;
 /*** Route protection ***/
 function protectRoute() {
     const user = getCurrentUser();
-    if (!user || user.role !== "admin") {
+    if (!user || !getStoredToken() || user.role !== "admin") {
         window.location.href = "login.html";
         return null;
     }

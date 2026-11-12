@@ -17,7 +17,7 @@ let liveOwnerBookings = null;
 /*** Route protection ***/
 function protectRoute() {
     const user = getCurrentUser();
-    if (!user || user.role !== "owner") {
+    if (!user || !getStoredToken() || user.role !== "owner") {
         window.location.href = "login.html";
         return null;
     }

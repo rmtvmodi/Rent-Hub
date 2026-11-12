@@ -38,6 +38,13 @@ export const protect = async (req, res, next) => {
             });
         }
 
+        if (user.isActive === false) {
+            return res.status(403).json({
+                success: false,
+                message: 'Your account has been deactivated. Access denied.'
+            });
+        }
+
         // 4. Attach verified user to request object
         req.user = user;
         return next();

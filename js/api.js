@@ -1,12 +1,60 @@
 // js/api.js
 // Centralized API integration client for RentHub full-stack architecture
 
-const DEFAULT_API_BASE = (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin.includes(':5000'))
-    ? '/api'
-    : 'http://localhost:5000/api';
+import { FRONTEND_CONFIG } from './config.js';
 
-export const API_BASE_URL = (typeof window !== 'undefined' && (window.RENTHUB_API_URL || localStorage.getItem('renthub_api_url')))
-    || DEFAULT_API_BASE;
+function resolveApiBaseUrl() {
+    if (typeof window === 'undefined') {
+        return FRONTEND_CONFIG.devApiUrl || 'http://localhost:5000/api';
+    }
+
+    // 1. Explicit runtime global override (e.g. injected by hosting config)
+    if (window.RENTHUB_API_URL && typeof window.RENTHUB_API_URL === 'string') {
+        return window.RENTHUB_API_URL.trim().replace(/\/+$/, '');
+    }
+
+    // 2. HTML <meta name="renthub-api-url" content="https://api.example.com/api">
+    if (typeof document !== 'undefined') {
+        const meta = document.querySelector('meta[name="renthub-api-url"]');
+        const metaUrl = meta && meta.getAttribute('content') ? meta.getAttribute('content').trim() : '';
+        if (metaUrl) {
+            return metaUrl.replace(/\/+$/, '');
+        }
+    }
+
+    // 3. Environment/config-file API URL (served by Express from PUBLIC_API_URL or configured in js/config.js)
+    if (FRONTEND_CONFIG && FRONTEND_CONFIG.apiUrl) {
+        return FRONTEND_CONFIG.apiUrl.trim().replace(/\/+$/, '');
+    }
+
+    // 4. Local-only developer override via localStorage (never honored on non-localhost production hosts)
+    const { protocol, hostname, port } = window.location || {};
+    const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
+    if (isLocalHost) {
+        try {
+            const devOverride = localStorage.getItem('renthub_api_url');
+            if (devOverride && devOverride.trim()) {
+                return devOverride.trim().replace(/\/+$/, '');
+            }
+        } catch (e) {
+            // Ignore storage access errors
+        }
+    }
+
+    // 5. Local static dev server (Live Server / Python http.server / file://) targets local backend
+    const devPorts = (FRONTEND_CONFIG && Array.isArray(FRONTEND_CONFIG.devStaticPorts))
+        ? FRONTEND_CONFIG.devStaticPorts
+        : ['5500', '8000', '3000', '5173', '4173'];
+
+    if (protocol === 'file:' || (isLocalHost && devPorts.includes(port))) {
+        return (FRONTEND_CONFIG && FRONTEND_CONFIG.devApiUrl) || 'http://localhost:5000/api';
+    }
+
+    // 6. Default: same-origin /api for both production and Express-served local development
+    return '/api';
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 const TOKEN_KEY = 'renthub_token';
 const USER_KEY = 'renthub_current_user';
@@ -140,7 +188,7 @@ export async function apiRequest(endpoint, {
         if (err.status) throw err;
 
         // Otherwise handle network failure or server unreachable
-        const networkError = new Error('Could not connect to backend server. Please verify the server is running on http://localhost:5000.');
+        const networkError = new Error('Could not connect to the RentHub server. Please check your connection and try again.');
         networkError.status = 0;
         networkError.isNetworkError = true;
         throw networkError;

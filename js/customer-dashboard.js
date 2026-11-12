@@ -19,7 +19,7 @@ let liveNotifications = null;
 /** Protect route: redirect to login if not customer */
 function protectRoute() {
     const user = getCurrentUser();
-    if (!user || user.role !== 'customer') {
+    if (!user || !getStoredToken() || user.role !== 'customer') {
         window.location.href = 'login.html';
         return null;
     }

@@ -9,10 +9,12 @@
     "dev": "node --watch server.js",
     "seed": "node seeder/seeder.js",
     "seed:destroy": "node seeder/seeder.js -d",
+    "provision:admin": "node seeder/provisionAdmin.js",
     "test": "node test_concurrency_security.js",
-    "test:all": "node test_models.js && node test_auth.js && node test_marketplace.js && node test_frontend_integration.js && node verify_db_persistence.js && node test_concurrency_security.js && node test_browser_e2e.js",
+    "test:all": "node test_models.js && node test_auth.js && node test_marketplace.js && node test_frontend_integration.js && node verify_db_persistence.js && node test_concurrency_security.js && node test_production_readiness.js && node test_browser_e2e.js",
     "test:browser": "node test_browser_e2e.js",
     "test:security": "node test_concurrency_security.js",
+    "test:prod-security": "node test_production_readiness.js",
     "test:db": "node verify_db_persistence.js",
     "test:restart": "node test_restart_persistence.js"
   },
