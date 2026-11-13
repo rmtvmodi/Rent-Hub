@@ -209,16 +209,37 @@ export function syncNavbarAuth() {
         `;
 
         if (navAuth) {
-            navAuth.innerHTML = `<a href="${dashboardUrl}" id="nav-dashboard-link"${isDashboard ? ' class="active"' : ''}>Dashboard</a>${notifButtonHtml}<a href="#" id="logout-btn" style="margin-left:0.5rem;">Logout</a>`;
+            if (user.role === 'admin') {
+                navAuth.innerHTML = `<a href="admin-dashboard.html" id="nav-dashboard-link"${currentFile === 'admin-dashboard.html' ? ' class="active"' : ''}>Admin Panel</a>${notifButtonHtml}<a href="#" id="logout-btn" style="margin-left:0.5rem;">Logout</a>`;
+            } else {
+                navAuth.innerHTML = `
+                    <a href="customer-dashboard.html"${currentFile === 'customer-dashboard.html' ? ' class="active"' : ''} title="My Rentals">Rentals</a>
+                    <a href="owner-dashboard.html"${currentFile === 'owner-dashboard.html' ? ' class="active"' : ''} title="My Listings" style="margin-left:0.5rem;">Listings</a>
+                    ${notifButtonHtml}
+                    <a href="#" id="logout-btn" style="margin-left:0.5rem;">Logout</a>
+                `;
+            }
         } else if (navLinks && (navLinks.classList.contains("nav-right") || navLinks.tagName === "DIV")) {
-            navLinks.innerHTML = `
-                <a href="index.html"${currentFile === 'index.html' ? ' class="active"' : ''}>Home</a>
-                <a href="products.html"${currentFile === 'products.html' ? ' class="active"' : ''}>Browse Products</a>
-                <a href="about.html"${currentFile === 'about.html' ? ' class="active"' : ''}>About</a>
-                <a href="${dashboardUrl}" id="nav-dashboard-link"${isDashboard ? ' class="active"' : ''}>Dashboard</a>
-                ${notifButtonHtml}
-                <a href="#" id="logout-btn" style="margin-left:0.5rem;">Logout</a>
-            `;
+            if (user.role === 'admin') {
+                navLinks.innerHTML = `
+                    <a href="index.html"${currentFile === 'index.html' ? ' class="active"' : ''}>Home</a>
+                    <a href="products.html"${currentFile === 'products.html' ? ' class="active"' : ''}>Browse Products</a>
+                    <a href="about.html"${currentFile === 'about.html' ? ' class="active"' : ''}>About</a>
+                    <a href="admin-dashboard.html" id="nav-dashboard-link"${currentFile === 'admin-dashboard.html' ? ' class="active"' : ''}>Admin Panel</a>
+                    ${notifButtonHtml}
+                    <a href="#" id="logout-btn" style="margin-left:0.5rem;">Logout</a>
+                `;
+            } else {
+                navLinks.innerHTML = `
+                    <a href="index.html"${currentFile === 'index.html' ? ' class="active"' : ''}>Home</a>
+                    <a href="products.html"${currentFile === 'products.html' ? ' class="active"' : ''}>Browse Products</a>
+                    <a href="about.html"${currentFile === 'about.html' ? ' class="active"' : ''}>About</a>
+                    <a href="customer-dashboard.html"${currentFile === 'customer-dashboard.html' ? ' class="active"' : ''}>My Rentals</a>
+                    <a href="owner-dashboard.html"${currentFile === 'owner-dashboard.html' ? ' class="active"' : ''}>My Listings</a>
+                    ${notifButtonHtml}
+                    <a href="#" id="logout-btn" style="margin-left:0.5rem;">Logout</a>
+                `;
+            }
         }
 
         const logoutBtn = document.getElementById("logout-btn");

@@ -3,6 +3,7 @@
 
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -44,6 +45,18 @@ const userSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true // Allows administrators to deactivate/reactivate accounts
+    },
+    resetPasswordToken: {
+        type: String,
+        select: false
+    },
+    resetPasswordExpire: {
+        type: Date,
+        select: false
+    },
+    passwordChangedAt: {
+        type: Date,
+        select: false
     }
 }, {
     timestamps: true,
@@ -78,6 +91,32 @@ userSchema.pre('save', async function (next) {
 userSchema.methods.matchPassword = async function (enteredPassword) {
     if (!this.password) return false;
     return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Generate and hash password reset token
+userSchema.methods.getResetPasswordToken = function () {
+    // Generate random 32-byte token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    // Hash token using sha256 and store in resetPasswordToken field
+    this.resetPasswordToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
+
+    // Set token expiration to 1 hour from now
+    this.resetPasswordExpire = Date.now() + 60 * 60 * 1000;
+
+    return resetToken;
+};
+
+// Check if password was changed after token issuance
+userSchema.methods.changedPasswordAfter = function (jwtTimestamp) {
+    if (this.passwordChangedAt) {
+        const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+        return jwtTimestamp < changedTimestamp;
+    }
+    return false;
 };
 
 export const User = mongoose.model('User', userSchema);

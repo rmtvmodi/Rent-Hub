@@ -20,18 +20,19 @@ const router = express.Router();
 // All booking routes require authentication
 router.use(protect);
 
-router.post('/', authorize('customer'), createBooking);
+// Customer operations (accessible to customer and owner, not admin)
+router.post('/', authorize('customer', 'owner'), createBooking);
 router.get('/my', getMyBookings);
 router.get('/:id', getBookingById);
 
-// Owner operations
-router.patch('/:id/accept', authorize('owner', 'admin'), acceptBooking);
-router.patch('/:id/reject', authorize('owner', 'admin'), rejectBooking);
-router.patch('/:id/handover', authorize('owner', 'admin'), markHandedOver);
-router.patch('/:id/return', authorize('owner', 'admin'), confirmReturn);
+// Owner operations (authorized for the listing owner, whether customer or owner role, or admin)
+router.patch('/:id/accept', authorize('owner', 'customer', 'admin'), acceptBooking);
+router.patch('/:id/reject', authorize('owner', 'customer', 'admin'), rejectBooking);
+router.patch('/:id/handover', authorize('owner', 'customer', 'admin'), markHandedOver);
+router.patch('/:id/return', authorize('owner', 'customer', 'admin'), confirmReturn);
 
-// Customer operations
-router.patch('/:id/cancel', authorize('customer', 'admin'), cancelBooking);
-router.patch('/:id/request-return', authorize('customer'), requestReturn);
+// Customer operations (cancellation & return request)
+router.patch('/:id/cancel', authorize('customer', 'owner', 'admin'), cancelBooking);
+router.patch('/:id/request-return', authorize('customer', 'owner'), requestReturn);
 
 export default router;

@@ -7,6 +7,7 @@ import Booking from '../models/Booking.js';
 import Wishlist from '../models/Wishlist.js';
 import Review from '../models/Review.js';
 import { createNotification } from '../utils/notify.js';
+import { isCloudinaryConfigured, uploadImageStream } from '../utils/cloudinary.js';
 
 /**
  * @desc    Get all approved products with search, multi-filters, sorting, and pagination
@@ -156,20 +157,108 @@ export const getProductById = async (req, res, next) => {
     }
 };
 
+// Helper: Verify actual binary magic numbers for JPEG, PNG, and WebP
+const isValidImageSignature = (buffer) => {
+    if (!buffer || buffer.length < 12) return false;
+    // JPEG: FF D8 FF
+    if (buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) return true;
+    // PNG: 89 50 4E 47 0D 0A 1A 0A
+    if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) return true;
+    // WebP: RIFF .... WEBP
+    if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
+        buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50) return true;
+    return false;
+};
+
+/**
+ * @desc    Upload product images to Cloudinary (using multer memory storage streaming)
+ * @route   POST /api/products/upload
+ * @access  Private (Owner / Customer / Admin)
+ */
+export const uploadProductImages = async (req, res, next) => {
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please select at least one image file to upload.'
+            });
+        }
+
+        // Validate actual binary content of every uploaded image
+        for (const file of req.files) {
+            if (!isValidImageSignature(file.buffer)) {
+                return res.status(400).json({
+                    success: false,
+                    message: `File "${file.originalname || 'upload'}" does not contain a valid JPEG, PNG, or WebP binary image signature.`
+                });
+            }
+        }
+
+        const isProduction = process.env.NODE_ENV === 'production';
+        const hasCloudinary = isCloudinaryConfigured();
+
+        if (!hasCloudinary) {
+            if (isProduction) {
+                return res.status(503).json({
+                    success: false,
+                    message: 'Cloudinary storage service is not configured in production. Direct file upload is currently unavailable.'
+                });
+            }
+
+            // In development and test mode, provide preview data URLs for local testing
+            const localPreviews = req.files.map(f => `data:${f.mimetype};base64,${f.buffer.toString('base64')}`);
+            return res.status(200).json({
+                success: true,
+                message: 'Images processed in development mode (Cloudinary unconfigured).',
+                urls: localPreviews
+            });
+        }
+
+        // Upload all images to Cloudinary via stream
+        const uploadPromises = req.files.map(file => uploadImageStream(file.buffer));
+        const results = await Promise.all(uploadPromises);
+        const uploadedUrls = results.map(r => r.secure_url || r.url);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Images uploaded successfully to Cloudinary.',
+            urls: uploadedUrls
+        });
+    } catch (error) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({
+                success: false,
+                message: 'One or more image files exceed the 5 MB size limit.'
+            });
+        }
+        next(error);
+    }
+};
+
 /**
  * @desc    Create a new product listing
  * @route   POST /api/products
- * @access  Private (Owner / Admin)
+ * @access  Private (Owner / Customer / Admin)
  */
 export const createProduct = async (req, res, next) => {
     try {
-        const { title, description, category, price_per_day, image, availability } = req.body;
+        const { title, description, category, price_per_day, image, images, availability } = req.body;
+
+        // Normalize images array and primary image
+        let imageList = [];
+        if (Array.isArray(images) && images.length > 0) {
+            imageList = images.filter(img => typeof img === 'string' && img.trim());
+        }
+        let primaryImage = image ? image.trim() : (imageList.length > 0 ? imageList[0] : '');
+        if (primaryImage && imageList.length === 0) {
+            imageList = [primaryImage];
+        }
 
         // Mandatory validation
-        if (!title || !description || !category || price_per_day === undefined || price_per_day === null || price_per_day === '' || !image) {
+        if (!title || !description || !category || price_per_day === undefined || price_per_day === null || price_per_day === '' || !primaryImage) {
             return res.status(400).json({
                 success: false,
-                message: 'Please provide title, description, category, daily rental price, and image URL.'
+                message: 'Please provide title, description, category, daily rental price, and at least one product image.'
             });
         }
 
@@ -192,7 +281,8 @@ export const createProduct = async (req, res, next) => {
             description: description.trim(),
             category: category.trim(),
             price_per_day: Number(price_per_day),
-            image: image.trim(),
+            image: primaryImage,
+            images: imageList,
             availability: availability !== undefined ? Boolean(availability) : true,
             approval_status: initialApproval
         });
@@ -238,7 +328,7 @@ export const updateProduct = async (req, res, next) => {
         }
 
         // Prevent mass assignment of owner or approval_status by non-admins
-        const { title, description, category, price_per_day, image, availability, approval_status } = req.body;
+        const { title, description, category, price_per_day, image, images, availability, approval_status } = req.body;
 
         if (title) product.title = title.trim();
         if (description) product.description = description.trim();
@@ -249,7 +339,18 @@ export const updateProduct = async (req, res, next) => {
             }
             product.price_per_day = Number(price_per_day);
         }
-        if (image) product.image = image.trim();
+        if (Array.isArray(images)) {
+            product.images = images.filter(img => typeof img === 'string' && img.trim());
+            if (product.images.length > 0 && !image) {
+                product.image = product.images[0];
+            }
+        }
+        if (image) {
+            product.image = image.trim();
+            if (!product.images || product.images.length === 0) {
+                product.images = [product.image];
+            }
+        }
         if (availability !== undefined) product.availability = Boolean(availability);
 
         // Only admins can change approval status via update

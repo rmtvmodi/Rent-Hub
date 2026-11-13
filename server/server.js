@@ -136,6 +136,8 @@ const ALLOWED_HTML_PAGES = new Set([
     'product-details.html',
     'login.html',
     'register.html',
+    'forgot-password.html',
+    'reset-password.html',
     'customer-dashboard.html',
     'owner-dashboard.html',
     'admin-dashboard.html',

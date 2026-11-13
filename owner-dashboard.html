@@ -21,12 +21,15 @@
     <main class="dashboard">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
             <div>
-                <h1 style="font-size:2rem; margin-bottom:0.25rem;">Owner Dashboard</h1>
-                <p style="color:var(--color-text-secondary); margin:0;">Manage your listed products, review booking requests, and track rental earnings.</p>
+                <h1 style="font-size:2rem; margin-bottom:0.25rem;">Owner & Lender Dashboard</h1>
+                <p style="color:var(--color-text-secondary); margin:0;">Manage your listed products, upload item photos, review booking requests, and track rental earnings.</p>
             </div>
-            <div style="display:flex; align-items:center; gap:0.5rem;">
-                <span style="font-size:0.9rem; color:var(--color-text-muted);">Logged in as:</span>
-                <span class="badge" style="background:rgba(45, 212, 191, 0.15); color:var(--color-secondary); font-weight:600;" id="owner-name">Owner</span>
+            <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                <a href="customer-dashboard.html" class="btn" style="border:1px solid var(--color-border); background:var(--color-surface); font-weight:600;">⇄ Switch to Renter Mode (My Rentals)</a>
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <span style="font-size:0.9rem; color:var(--color-text-muted);">Logged in as:</span>
+                    <span class="badge" style="background:rgba(45, 212, 191, 0.15); color:var(--color-secondary); font-weight:600;" id="owner-name">Owner</span>
+                </div>
             </div>
         </div>
 
@@ -89,7 +92,7 @@
                 <label for="prod-desc">Description
                     <textarea id="prod-desc" rows="3" placeholder="Describe specifications, condition, and included accessories" required></textarea>
                 </label>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                <div class="form-row-2col">
                     <label for="prod-category">Category
                         <select id="prod-category" required>
                             <option value="Electronics">Electronics</option>
@@ -105,9 +108,43 @@
                         <input type="number" id="prod-price" min="1" placeholder="500" required />
                     </label>
                 </div>
-                <label for="prod-image">Image URL
-                    <input type="url" id="prod-image" placeholder="https://images.unsplash.com/..." required />
-                </label>
+                <!-- Product Image Upload (Gallery, Camera, or URL) -->
+                <div style="margin-top:0.75rem; margin-bottom:1rem;">
+                    <label style="font-weight:600; margin-bottom:0.4rem; display:block;">Product Photos</label>
+
+                    <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-bottom:0.6rem;">
+                        <!-- Device Gallery Selection -->
+                        <label class="btn" style="cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem; background:var(--color-surface); border:1px solid var(--color-border); padding:0.5rem 1rem; font-size:0.9rem;">
+                            📁 Choose from Gallery
+                            <input type="file" id="prod-file-input" accept="image/jpeg,image/png,image/webp" multiple style="display:none;" />
+                        </label>
+
+                        <!-- Mobile Camera Capture -->
+                        <label class="btn" style="cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem; background:var(--color-surface); border:1px solid var(--color-border); padding:0.5rem 1rem; font-size:0.9rem;">
+                            📷 Take Photo with Camera
+                            <input type="file" id="prod-camera-input" accept="image/jpeg,image/png,image/webp" capture="environment" style="display:none;" />
+                        </label>
+                    </div>
+
+                    <div style="font-size:0.82rem; color:var(--color-text-muted); margin-bottom:0.75rem;">
+                        Upload up to 5 photos. Formats: JPG, PNG, WebP (up to 5MB each). The first photo will be used as the primary cover.
+                    </div>
+
+                    <!-- Upload status notification -->
+                    <div id="image-upload-status" style="display:none; font-size:0.88rem; margin-bottom:0.75rem; padding:0.5rem 0.75rem; border-radius:var(--radius);"></div>
+
+                    <!-- Selected image preview cards tray -->
+                    <div id="image-previews-container" style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-bottom:0.75rem;"></div>
+
+                    <!-- Optional Direct URL fallback -->
+                    <details style="margin-top:0.75rem; font-size:0.85rem; color:var(--color-text-secondary);">
+                        <summary style="cursor:pointer; font-weight:500; color:var(--color-secondary);">Or add image via direct Web URL</summary>
+                        <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+                            <input type="url" id="prod-image-url" placeholder="https://images.unsplash.com/..." style="flex:1;" />
+                            <button type="button" id="add-url-img-btn" class="btn" style="font-size:0.85rem; padding:0.4rem 0.8rem;">+ Add URL</button>
+                        </div>
+                    </details>
+                </div>
                 <label for="prod-availability" style="display:inline-flex; flex-direction:row; align-items:center; gap:0.6rem; cursor:pointer; margin-top:0.25rem;">
                     <input type="checkbox" id="prod-availability" checked style="width:1.2rem; height:1.2rem; cursor:pointer;" /> 
                     <span style="font-weight:600;">Available for immediate rent</span>

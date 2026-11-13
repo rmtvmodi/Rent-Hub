@@ -48,6 +48,10 @@ const productSchema = new mongoose.Schema({
         required: [true, 'Please provide an image URL'],
         trim: true
     },
+    images: [{
+        type: String,
+        trim: true
+    }],
     rating: {
         type: Number,
         default: 0, // Requirement: Do not use default 5 for products without reviews

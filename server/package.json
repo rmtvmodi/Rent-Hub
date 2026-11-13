@@ -11,7 +11,9 @@
     "seed:destroy": "node seeder/seeder.js -d",
     "provision:admin": "node seeder/provisionAdmin.js",
     "test": "node test_concurrency_security.js",
-    "test:all": "node test_models.js && node test_auth.js && node test_marketplace.js && node test_frontend_integration.js && node verify_db_persistence.js && node test_concurrency_security.js && node test_production_readiness.js && node test_browser_e2e.js",
+    "test:features": "node test_features_suite.js",
+    "test:mobile": "node test_mobile_responsiveness.js",
+    "test:all": "node test_models.js && node test_auth.js && node test_marketplace.js && node test_frontend_integration.js && node verify_db_persistence.js && node test_concurrency_security.js && node test_production_readiness.js && node test_features_suite.js && node test_mobile_responsiveness.js",
     "test:browser": "node test_browser_e2e.js",
     "test:security": "node test_concurrency_security.js",
     "test:prod-security": "node test_production_readiness.js",
@@ -33,12 +35,15 @@
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.11.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "multer": "^2.5.0",
+    "nodemailer": "^10.5.0"
   },
   "devDependencies": {
     "puppeteer-core": "^25.16.0"

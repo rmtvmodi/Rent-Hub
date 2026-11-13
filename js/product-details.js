@@ -18,6 +18,7 @@ function getQueryParam(name) {
 let currentProduct = null;
 let currentRatingStats = null;
 let currentReviews = [];
+let activeImageIndex = 0;
 
 /** Render product information */
 function renderProduct(product, ratingStats = null, reviews = []) {
@@ -30,10 +31,13 @@ function renderProduct(product, ratingStats = null, reviews = []) {
 
     const pid = product.product_id || product._id;
     let ownerName = 'Verified Lender';
-    if (product.owner && typeof product.owner === 'object' && product.owner.name) {
-        ownerName = product.owner.name;
+    let ownerId = null;
+    if (product.owner && typeof product.owner === 'object') {
+        ownerName = product.owner.name || 'Verified Lender';
+        ownerId = product.owner._id || product.owner.user_id;
     } else {
-        const owner = getUsers().find(u => u.user_id === (product.owner_id || product.owner));
+        ownerId = product.owner_id || product.owner;
+        const owner = getUsers().find(u => u.user_id === ownerId);
         if (owner) ownerName = owner.name;
     }
 
@@ -50,26 +54,50 @@ function renderProduct(product, ratingStats = null, reviews = []) {
     const isAvailable = product.availability && product.approval_status !== 'rejected';
     const todayStr = new Date().toISOString().split('T')[0];
 
+    // Collect all product images (supporting multi-image gallery or single fallback)
+    const images = Array.isArray(product.images) && product.images.length > 0
+        ? product.images
+        : [product.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80'];
+
+    if (activeImageIndex >= images.length) {
+        activeImageIndex = 0;
+    }
+
+    const thumbnailsHtml = images.length > 1 ? `
+        <div class="product-thumbnails-tray" role="tablist" aria-label="Product Image Thumbnails">
+            ${images.map((imgSrc, idx) => `
+                <button type="button" class="product-thumb-btn ${idx === activeImageIndex ? 'active' : ''}" data-index="${idx}" aria-label="Thumbnail ${idx + 1}" role="tab" aria-selected="${idx === activeImageIndex}">
+                    <img src="${imgSrc}" alt="${product.title} - View ${idx + 1}" loading="lazy" />
+                </button>
+            `).join('')}
+        </div>
+    ` : '';
+
     container.innerHTML = `
-        <div style="display:flex; flex-wrap:wrap; gap:2.5rem; align-items:flex-start;">
-            <div style="flex:1; min-width:280px; max-width:420px;">
-                <img src="${product.image}" alt="${product.title}" style="width:100%; max-height:360px; object-fit:cover; border-radius:var(--radius-lg); border:1px solid var(--color-border); box-shadow:var(--color-card-shadow);" />
+        <div class="product-detail-layout">
+            <!-- Left Pane: Product Image Gallery -->
+            <div class="product-gallery-pane">
+                <div class="product-gallery-main">
+                    <img id="main-product-img" src="${images[activeImageIndex]}" alt="${product.title}" class="product-gallery-main-img" />
+                </div>
+                ${thumbnailsHtml}
                 <div id="wishlist-section" style="margin-top:1.25rem;"></div>
             </div>
             
-            <div style="flex:2; min-width:280px;">
+            <!-- Right Pane: Product Info & Actions -->
+            <div class="product-info-pane">
                 <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.5rem;">
                     <span class="badge" style="background:rgba(124, 108, 242, 0.15); color:var(--color-primary); border:1px solid rgba(124, 108, 242, 0.3);">${product.category}</span>
                     <span class="badge ${isAvailable ? 'accepted' : 'rejected'}">${isAvailable ? '● Available for Rent' : '○ Currently Unavailable'}</span>
                     <span style="color:var(--color-secondary); font-size:0.9rem; font-weight:600;">${ratingText}</span>
                 </div>
 
-                <h1 style="font-size:2rem; margin-bottom:0.75rem;">${product.title}</h1>
+                <h1 style="font-size: clamp(1.5rem, 4vw, 2.1rem); margin-bottom:0.75rem; word-break: break-word;">${product.title}</h1>
                 <p style="font-size:1.4rem; color:var(--color-secondary); font-weight:700; margin-bottom:1rem;">₹${product.price_per_day} <span style="font-size:0.95rem; font-weight:400; color:var(--color-text-secondary);">/ day</span></p>
                 
                 <div style="background:var(--color-surface); padding:1rem 1.25rem; border-radius:var(--radius); border:1px solid var(--color-border); margin-bottom:1.5rem;">
                     <p style="margin:0 0 0.4rem; font-size:0.9rem;"><strong>Lender:</strong> ${ownerName}</p>
-                    <p style="margin:0; font-size:0.95rem; color:var(--color-text-secondary); line-height:1.6;">${product.description}</p>
+                    <p style="margin:0; font-size:0.95rem; color:var(--color-text-secondary); line-height:1.6; word-break: break-word;">${product.description}</p>
                 </div>
 
                 <!-- Booking Box -->
@@ -77,15 +105,15 @@ function renderProduct(product, ratingStats = null, reviews = []) {
                     <h3 style="margin-bottom:1rem; color:var(--color-secondary);">Reserve This Product</h3>
                     <div id="booking-alert-msg" style="margin-bottom:0.75rem; font-size:0.9rem; font-weight:500;"></div>
                     ${!isAvailable ? `<p style="color:#FB7185; font-weight:500;">This product is currently unavailable for new rental bookings.</p>` : `
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+                        <div class="booking-dates-grid">
                             <label>Start Date:
-                                <input type="date" id="start-date" min="${todayStr}" style="width:100%; margin-top:0.35rem;" />
+                                <input type="date" id="start-date" min="${todayStr}" />
                             </label>
                             <label>End Date:
-                                <input type="date" id="end-date" min="${todayStr}" style="width:100%; margin-top:0.35rem;" />
+                                <input type="date" id="end-date" min="${todayStr}" />
                             </label>
                         </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; flex-wrap:wrap; gap:0.5rem;">
                             <span id="days-info" style="font-size:0.95rem; color:var(--color-text-secondary);"></span>
                             <span id="total-price" style="font-weight:700; font-size:1.25rem; color:var(--color-secondary);"></span>
                         </div>
@@ -102,11 +130,34 @@ function renderProduct(product, ratingStats = null, reviews = []) {
         </div>
     `;
 
-    // Wishlist button
+    // Wire thumbnail clicks
+    const thumbBtns = container.querySelectorAll('.product-thumb-btn');
+    thumbBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const idx = parseInt(btn.getAttribute('data-index'), 10);
+            if (!isNaN(idx) && images[idx]) {
+                activeImageIndex = idx;
+                const mainImg = document.getElementById('main-product-img');
+                if (mainImg) {
+                    mainImg.style.opacity = '0.5';
+                    setTimeout(() => {
+                        mainImg.src = images[idx];
+                        mainImg.style.opacity = '1';
+                    }, 120);
+                }
+                thumbBtns.forEach((b, i) => {
+                    b.classList.toggle('active', i === idx);
+                    b.setAttribute('aria-selected', i === idx ? 'true' : 'false');
+                });
+            }
+        });
+    });
+
+    // Wishlist button (accessible to any authenticated non-admin user)
     const wlDiv = document.getElementById('wishlist-section');
     const user = getCurrentUser();
-    if (user && user.role === 'customer') {
-        const inWishlist = getWishlists().some(w => w.customer_id === user.user_id && w.product_id === pid);
+    if (user && user.role !== 'admin') {
+        const inWishlist = getWishlists().some(w => (w.customer_id === user.user_id || w.customer_id === user._id) && w.product_id === pid);
         wlDiv.innerHTML = `<button id="wishlist-btn" class="btn" style="width:100%;">${inWishlist ? '♥ Remove from Wishlist' : '♡ Add to Wishlist'}</button>`;
         document.getElementById('wishlist-btn').addEventListener('click', () => toggleWishlist(pid, inWishlist));
     } else if (!user) {
@@ -189,19 +240,31 @@ async function attemptBooking(product) {
     if (!user) {
         if (alertDiv) {
             alertDiv.style.color = '#FB7185';
-            alertDiv.textContent = 'Please log in as a Customer to submit a booking.';
+            alertDiv.textContent = 'Please log in to submit a booking.';
         } else {
-            alert('Please log in as a Customer to submit a booking.');
+            alert('Please log in to submit a booking.');
         }
         window.location.href = 'login.html';
         return;
     }
-    if (user.role !== 'customer') {
+    if (user.role === 'admin') {
         if (alertDiv) {
             alertDiv.style.color = '#FB7185';
-            alertDiv.textContent = 'Only customer accounts can rent products. Please log in with a customer account.';
+            alertDiv.textContent = 'Admin accounts cannot place rental bookings.';
         } else {
-            alert('Only customer accounts can rent products.');
+            alert('Admin accounts cannot place rental bookings.');
+        }
+        return;
+    }
+
+    const userId = user.user_id || user._id;
+    const prodOwnerId = typeof product.owner === 'object' ? (product.owner._id || product.owner.user_id) : (product.owner_id || product.owner);
+    if (userId && prodOwnerId && String(userId) === String(prodOwnerId)) {
+        if (alertDiv) {
+            alertDiv.style.color = '#FB7185';
+            alertDiv.textContent = 'You cannot rent your own product listing.';
+        } else {
+            alert('You cannot rent your own product listing.');
         }
         return;
     }
@@ -358,12 +421,13 @@ function renderReviews(product, reviewsList = []) {
         html += '</div>';
     }
 
-    // Check if logged-in customer is eligible to review
+    // Check if logged-in user is eligible to review
     const current = getCurrentUser();
-    if (current && current.role === 'customer') {
+    if (current && current.role !== 'admin') {
+        const currentUserId = current.user_id || current._id;
         const completedBookings = getBookings().filter(b =>
-            (b.customer_id === current.user_id || b.customer === current.user_id) &&
-            (b.product_id === pid || b.product === pid) &&
+            (b.customer_id === currentUserId || b.customer === currentUserId || (b.customer && b.customer._id === currentUserId)) &&
+            (b.product_id === pid || b.product === pid || (b.product && b.product._id === pid)) &&
             b.status === 'Completed'
         );
 

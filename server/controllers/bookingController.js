@@ -208,8 +208,13 @@ export const createBooking = async (req, res, next) => {
 export const getMyBookings = async (req, res, next) => {
     try {
         let filter = {};
+        const asRole = req.query.role || req.query.as;
 
-        if (req.user.role === 'customer') {
+        if (asRole === 'customer') {
+            filter = { customer: req.user._id };
+        } else if (asRole === 'owner') {
+            filter = { owner: req.user._id };
+        } else if (req.user.role === 'customer') {
             filter = { customer: req.user._id };
         } else if (req.user.role === 'owner') {
             filter = { owner: req.user._id };

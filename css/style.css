@@ -950,6 +950,300 @@ tbody tr:hover {
     border-radius: var(--radius);
 }
 
+/* ==== About Page Specific Responsive Layouts ==== */
+.about-page-main {
+    padding: 2.5rem 1.5rem 4rem;
+    max-width: 1040px;
+    margin: 0 auto;
+    width: 100%;
+}
+.about-hero {
+    padding: 3rem 1.5rem;
+    margin-bottom: 2rem;
+}
+.about-section-header {
+    margin-bottom: 1.25rem;
+}
+.about-section-header h2 {
+    font-size: 1.75rem;
+    margin-top: 0.4rem;
+    margin-bottom: 0.5rem;
+}
+.how-it-works-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+.how-column {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+.how-column-header {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+}
+.how-role-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+.how-steps-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    flex: 1;
+}
+.how-steps-list li strong {
+    color: var(--color-text-primary);
+    display: block;
+    font-size: 0.98rem;
+    margin-bottom: 0.25rem;
+}
+.how-steps-list li p {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.5;
+}
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+}
+.benefit-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: transform var(--transition-fast), border-color var(--transition-fast);
+}
+.benefit-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(124, 108, 242, 0.4);
+}
+.benefit-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    line-height: 1;
+}
+.benefit-card h4 {
+    margin-bottom: 0.5rem;
+    color: var(--color-secondary);
+    font-size: 1.1rem;
+}
+.benefit-card p {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.5;
+}
+.contact-support-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+}
+.contact-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    text-align: center;
+}
+.contact-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+}
+.contact-card h4 {
+    margin-bottom: 0.4rem;
+    font-size: 1.1rem;
+}
+
+/* ==== Feature 2: Responsive Product Details Layout ==== */
+.product-detail-layout {
+    display: grid;
+    grid-template-columns: minmax(300px, 420px) 1fr;
+    gap: 2.5rem;
+    align-items: start;
+    width: 100%;
+}
+.product-gallery-pane {
+    width: 100%;
+}
+.product-gallery-main {
+    position: relative;
+    width: 100%;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: #0A0F1A;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--color-card-shadow);
+}
+.product-gallery-main-img {
+    width: 100%;
+    height: 380px;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.2s ease;
+}
+.product-thumbnails-tray {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+}
+.product-thumb-btn {
+    flex: 0 0 68px;
+    height: 68px;
+    border-radius: var(--radius);
+    border: 2px solid transparent;
+    overflow: hidden;
+    padding: 0;
+    background: var(--color-surface);
+    cursor: pointer;
+    transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+.product-thumb-btn:hover {
+    transform: scale(1.05);
+}
+.product-thumb-btn.active {
+    border-color: var(--color-secondary);
+}
+.product-thumb-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.product-info-pane {
+    width: 100%;
+    min-width: 0;
+}
+.booking-dates-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.booking-dates-grid label {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.booking-dates-grid input[type="date"] {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    background: #0F1829;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+}
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+}
+
+/* Responsive Breakpoints for Tablet & Mobile */
+@media (max-width: 900px) {
+    .product-detail-layout {
+        grid-template-columns: 1fr;
+        gap: 1.75rem;
+    }
+    .product-gallery-main-img {
+        max-height: 340px;
+    }
+}
+
+@media (max-width: 768px) {
+    .about-page-main {
+        padding: 1.5rem 1rem 3rem;
+    }
+    .about-hero {
+        padding: 2rem 1rem;
+    }
+    .about-hero h1 {
+        font-size: 2rem;
+    }
+    .how-it-works-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+    .product-detail.card {
+        padding: 1.25rem !important;
+    }
+    .product-gallery-main-img {
+        max-height: 300px;
+    }
+    .dashboard {
+        padding: 1.5rem 1rem 3rem;
+    }
+    #stats,
+    #summary-cards {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem !important;
+    }
+}
+
+.form-row-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+@media (max-width: 480px) {
+    .form-row-2col {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    .dashboard {
+        padding: 1rem 0.65rem 3rem !important;
+        overflow-x: hidden;
+    }
+    .about-hero h1 {
+        font-size: 1.65rem;
+    }
+    .booking-dates-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    .product-gallery-main-img {
+        max-height: 250px;
+    }
+    .product-thumb-btn {
+        flex: 0 0 54px;
+        height: 54px;
+    }
+    .product-detail.card {
+        padding: 0.85rem !important;
+    }
+    main {
+        padding: 1.25rem 0.85rem 3rem !important;
+    }
+    #stats,
+    #summary-cards {
+        grid-template-columns: 1fr !important;
+    }
+    .auth-section.card {
+        padding: 1.25rem 1rem !important;
+    }
+}
+
 /* Accessibility: prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
     *,

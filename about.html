@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>About – RentHub</title>
+    <title>About Us – RentHub | Rent Before You Buy</title>
     <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -18,31 +18,171 @@
         <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-controls="nav-links" aria-expanded="false">&#9776;</button>
     </nav>
 
-    <main style="padding:2.5rem 1.5rem 4rem;">
-        <section class="about-section card" style="max-width:850px; margin:auto;">
-            <h2>About RentHub</h2>
-            <p><strong>RentHub – “Rent Before You Buy”</strong> is a modern online rental marketplace designed to help people access premium electronics, photography gear, tools, and lifestyle equipment without the burden of full ownership.</p>
-            <p>Our mission is simple: promote sustainable consumption, save you money, and allow you to test-drive products in real life before committing to buying them.</p>
-            
-            <hr />
+    <main class="about-page-main">
+        <!-- Hero Section -->
+        <section class="about-hero card text-center">
+            <span class="badge" style="background:rgba(45, 212, 191, 0.15); color:var(--color-secondary); font-weight:700; font-size:0.85rem; margin-bottom:0.75rem; display:inline-block;">SMART RENTALS • CIRCULAR ECONOMY</span>
+            <h1 style="font-size:2.5rem; margin-bottom:1rem; line-height:1.2;">Rent Before You Buy</h1>
+            <p style="font-size:1.15rem; max-width:720px; margin:0 auto 1.5rem; color:var(--color-text-secondary); line-height:1.7;">
+                RentHub is a next-generation product rental marketplace connecting people who need premium gear with individuals and businesses that have underutilized equipment. We make high-end photography, electronics, laptops, gaming gear, and tools accessible to everyone on flexible daily terms.
+            </p>
+            <div style="display:flex; justify-content:center; gap:1rem; flex-wrap:wrap;">
+                <a href="products.html" class="btn primary">Explore Products to Rent</a>
+                <a href="register.html" class="btn secondary">Start Lending Your Gear</a>
+            </div>
+        </section>
 
-            <h3 style="color:var(--color-primary); margin-bottom:1rem;">Three Unified Platform Roles</h3>
-            <div class="grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
-                <div style="background:var(--color-surface); padding:1.25rem; border-radius:var(--radius); border:1px solid var(--color-border);">
-                    <h4 style="color:var(--color-secondary);">Customer</h4>
-                    <p style="font-size:0.9rem; margin:0;">Browse products, manage wishlist, request rental dates, and track active bookings.</p>
-                </div>
-                <div style="background:var(--color-surface); padding:1.25rem; border-radius:var(--radius); border:1px solid var(--color-border);">
-                    <h4 style="color:var(--color-secondary);">Owner</h4>
-                    <p style="font-size:0.9rem; margin:0;">List items with daily rates, review booking requests, accept/reject rentals, and manage inventory.</p>
-                </div>
-                <div style="background:var(--color-surface); padding:1.25rem; border-radius:var(--radius); border:1px solid var(--color-border);">
-                    <h4 style="color:var(--color-secondary);">Admin</h4>
-                    <p style="font-size:0.9rem; margin:0;">Full platform overview, user management, inventory moderation, booking oversight, and metrics.</p>
-                </div>
+        <!-- Our Purpose & Mission -->
+        <section class="card" style="margin-top:2rem;">
+            <div class="about-section-header">
+                <span class="badge" style="background:rgba(124, 108, 242, 0.15); color:var(--color-primary); font-weight:700;">OUR PURPOSE</span>
+                <h2>Why RentHub Was Created</h2>
+            </div>
+            <p style="font-size:1.05rem; line-height:1.8; color:var(--color-text-secondary);">
+                Every year, consumers spend thousands of dollars on expensive gadgets, specialized lenses, high-end power tools, and gaming hardware that end up sitting idle inside drawers 90% of the time. At the same time, students, creators, and professionals frequently require specialized equipment for short-term projects, client shoots, or weekend trips without the financial ability or desire to pay full retail price.
+            </p>
+            <p style="font-size:1.05rem; line-height:1.8; color:var(--color-text-secondary); margin:0;">
+                RentHub bridges this gap with a secure, community-driven rental marketplace that transforms dormant assets into income for owners while empowering renters with flexible, affordable access to the gear they need.
+            </p>
+        </section>
+
+        <!-- How It Works (For Customers & Owners) -->
+        <section class="card" style="margin-top:2rem;">
+            <div class="about-section-header text-center">
+                <span class="badge" style="background:rgba(45, 212, 191, 0.15); color:var(--color-secondary); font-weight:700;">HOW RENTHUB WORKS</span>
+                <h2>Two Simple Paths, One Unified Platform</h2>
+                <p style="max-width:680px; margin:0.5rem auto 0; color:var(--color-text-secondary);">
+                    Any RentHub account can easily browse and rent equipment or list products for rent without juggling multiple logins.
+                </p>
             </div>
 
-            <p style="font-size:0.9rem; color:var(--color-text-muted);">Built with modern semantic HTML5, high-contrast CSS3 design system, and modular vanilla JavaScript utilizing browser <code>localStorage</code> for deterministic state persistence.</p>
+            <div class="how-it-works-grid" style="margin-top:2rem;">
+                <!-- Customer Column -->
+                <div class="how-column">
+                    <div class="how-column-header">
+                        <span class="how-role-icon">🎒</span>
+                        <div>
+                            <h3 style="margin:0; color:var(--color-secondary);">How Customers Rent</h3>
+                            <p style="margin:0.25rem 0 0; font-size:0.85rem; color:var(--color-text-muted);">Access what you need, when you need it</p>
+                        </div>
+                    </div>
+                    <ol class="how-steps-list">
+                        <li>
+                            <strong>1. Browse & Filter Gear:</strong>
+                            <p>Explore cameras, laptops, gaming gear, projectors, and tools by category, price, and availability.</p>
+                        </li>
+                        <li>
+                            <strong>2. Select Rental Dates:</strong>
+                            <p>Pick your rental start and return dates. RentHub checks real-time calendar availability to prevent scheduling conflicts.</p>
+                        </li>
+                        <li>
+                            <strong>3. Submit Request & Pay:</strong>
+                            <p>Once the owner accepts your booking, complete the simulated payment via UPI, Card, or NetBanking to lock your reservation.</p>
+                        </li>
+                        <li>
+                            <strong>4. Handover & Return:</strong>
+                            <p>Coordinate with the owner, inspect the equipment condition, complete your rental period, and return it safely upon completion.</p>
+                        </li>
+                    </ol>
+                    <a href="products.html" class="btn primary" style="width:100%; text-align:center; margin-top:1rem;">Browse Available Items</a>
+                </div>
+
+                <!-- Owner Column -->
+                <div class="how-column">
+                    <div class="how-column-header">
+                        <span class="how-role-icon">📦</span>
+                        <div>
+                            <h3 style="margin:0; color:var(--color-primary);">How Owners Lend & Earn</h3>
+                            <p style="margin:0.25rem 0 0; font-size:0.85rem; color:var(--color-text-muted);">Turn idle gear into a steady income stream</p>
+                        </div>
+                    </div>
+                    <ol class="how-steps-list">
+                        <li>
+                            <strong>1. Snap Photos & List:</strong>
+                            <p>Take clear photos using your camera or choose gallery images, describe your item, and set your fair daily rental rate.</p>
+                        </li>
+                        <li>
+                            <strong>2. Admin Quality Verification:</strong>
+                            <p>Your listing is reviewed by our moderation team to ensure marketplace standards and quality transparency.</p>
+                        </li>
+                        <li>
+                            <strong>3. Accept Booking Requests:</strong>
+                            <p>Receive notifications when customers request your equipment, review the dates, and approve with one click.</p>
+                        </li>
+                        <li>
+                            <strong>4. Equipment Handover & Earnings:</strong>
+                            <p>Coordinate equipment handover, track rental milestones in your dashboard, verify returns, and manage your earnings.</p>
+                        </li>
+                    </ol>
+                    <a href="owner-dashboard.html" class="btn secondary" style="width:100%; text-align:center; margin-top:1rem;">List Your Gear</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mission & Benefits of Renting Instead of Buying -->
+        <section class="card" style="margin-top:2rem;">
+            <div class="about-section-header">
+                <span class="badge" style="background:rgba(124, 108, 242, 0.15); color:var(--color-primary); font-weight:700;">WHY RENT INSTEAD OF BUYING?</span>
+                <h2>The Smart Benefits of the Rental Model</h2>
+            </div>
+
+            <div class="benefits-grid" style="margin-top:1.5rem;">
+                <div class="benefit-card">
+                    <div class="benefit-icon">💰</div>
+                    <h4>Substantial Cost Savings</h4>
+                    <p>Pay only for the specific days you need the gear instead of committing full retail purchase prices upfront for occasional use.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">🧪</div>
+                    <h4>Try Before You Buy</h4>
+                    <p>Avoid buyer's remorse. Test cameras, projectors, laptops, and gear in real-world everyday conditions before making a permanent purchase.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">🌿</div>
+                    <h4>Eco-Friendly & Sustainable</h4>
+                    <p>Sharing underutilized items directly reduces manufacturing demand, curbs e-waste, and lowers carbon footprints through circular consumption.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">🛡️</div>
+                    <h4>Reduced Maintenance Burden</h4>
+                    <p>Access high-performance gear when you need it without the ongoing responsibility of long-term storage or routine upkeep.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact & Support Section -->
+        <section class="card" style="margin-top:2rem; margin-bottom:1rem;">
+            <div class="about-section-header text-center">
+                <span class="badge" style="background:rgba(45, 212, 191, 0.15); color:var(--color-secondary); font-weight:700;">WE ARE HERE TO HELP</span>
+                <h2>Customer Support & Community Inquiries</h2>
+                <p style="max-width:620px; margin:0.5rem auto 0; color:var(--color-text-secondary);">
+                    Have a question about renting, equipment safety, or listing your gear? Our dedicated community support team is ready to assist.
+                </p>
+            </div>
+
+            <div class="contact-support-grid" style="margin-top:2rem;">
+                <div class="contact-card">
+                    <div class="contact-icon">📧</div>
+                    <h4>Email Support</h4>
+                    <p style="font-size:0.9rem; color:var(--color-text-secondary); margin-bottom:0.75rem;">Get in touch directly with our support specialists.</p>
+                    <a href="mailto:support@renthub.com" style="font-weight:600; color:var(--color-secondary);">support@renthub.com</a>
+                    <span style="display:block; font-size:0.8rem; color:var(--color-text-muted); margin-top:0.35rem;">Typical response: under 24 hours</span>
+                </div>
+
+                <div class="contact-card">
+                    <div class="contact-icon">❓</div>
+                    <h4>Frequently Asked Questions</h4>
+                    <p style="font-size:0.9rem; color:var(--color-text-secondary); margin-bottom:0.75rem;">Find instant answers to common questions about deposits, late returns, and ratings.</p>
+                    <a href="index.html#faq-section" style="font-weight:600; color:var(--color-primary);">View Homepage FAQ →</a>
+                </div>
+
+                <div class="contact-card">
+                    <div class="contact-icon">⚡</div>
+                    <h4>Community Guidelines</h4>
+                    <p style="font-size:0.9rem; color:var(--color-text-secondary); margin-bottom:0.75rem;">Learn our standards for transparent ratings, punctual returns, and gear inspection.</p>
+                    <a href="products.html" style="font-weight:600; color:var(--color-secondary);">Browse Marketplace →</a>
+                </div>
+            </div>
         </section>
     </main>
 

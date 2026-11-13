@@ -29,7 +29,7 @@ export const protect = async (req, res, next) => {
         const decoded = verifyToken(token);
 
         // 3. Fetch authenticated user from database (excluding password hash)
-        const user = await User.findById(decoded.id).select('-password');
+        const user = await User.findById(decoded.id).select('-password +passwordChangedAt');
 
         if (!user) {
             return res.status(401).json({
@@ -42,6 +42,14 @@ export const protect = async (req, res, next) => {
             return res.status(403).json({
                 success: false,
                 message: 'Your account has been deactivated. Access denied.'
+            });
+        }
+
+        // Check if user changed password after the token was issued
+        if (user.changedPasswordAfter && user.changedPasswordAfter(decoded.iat)) {
+            return res.status(401).json({
+                success: false,
+                message: 'Password was recently changed. Please log in again.'
             });
         }
 

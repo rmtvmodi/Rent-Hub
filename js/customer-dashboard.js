@@ -16,11 +16,15 @@ let liveBookings = null;
 let liveWishlist = null;
 let liveNotifications = null;
 
-/** Protect route: redirect to login if not customer */
+/** Protect route: allow authenticated customer or owner, redirect admins or guests */
 function protectRoute() {
     const user = getCurrentUser();
-    if (!user || !getStoredToken() || user.role !== 'customer') {
+    if (!user || !getStoredToken()) {
         window.location.href = 'login.html';
+        return null;
+    }
+    if (user.role === 'admin') {
+        window.location.href = 'admin-dashboard.html';
         return null;
     }
     return user;
@@ -31,7 +35,7 @@ async function fetchCustomerData(user) {
     if (!getStoredToken()) return;
     try {
         const [bRes, wRes, nRes] = await Promise.allSettled([
-            api.get('/bookings/my'),
+            api.get('/bookings/my?role=customer'),
             api.get('/wishlists'),
             api.get('/notifications')
         ]);

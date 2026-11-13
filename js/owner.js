@@ -14,11 +14,15 @@ import { api, getStoredToken } from "./api.js";
 let liveOwnerProducts = null;
 let liveOwnerBookings = null;
 
-/*** Route protection ***/
+/*** Route protection: allow authenticated owner or customer, redirect admins or guests ***/
 function protectRoute() {
     const user = getCurrentUser();
-    if (!user || !getStoredToken() || user.role !== "owner") {
+    if (!user || !getStoredToken()) {
         window.location.href = "login.html";
+        return null;
+    }
+    if (user.role === "admin") {
+        window.location.href = "admin-dashboard.html";
         return null;
     }
     return user;
@@ -27,6 +31,126 @@ function protectRoute() {
 /*** Form State ***/
 let editMode = false;
 let editProductId = null;
+let currentProductImages = [];
+
+function renderImagePreviews() {
+    const container = document.getElementById("image-previews-container");
+    if (!container) return;
+
+    if (currentProductImages.length === 0) {
+        container.innerHTML = '<span style="font-size:0.85rem; color:var(--color-text-muted);">No images selected yet. Choose a photo from gallery, take a picture with camera, or enter an image URL.</span>';
+        return;
+    }
+
+    container.innerHTML = currentProductImages.map((url, idx) => `
+        <div style="position:relative; width:92px; height:92px; border-radius:var(--radius); overflow:hidden; border:2px solid ${idx === 0 ? 'var(--color-secondary)' : 'var(--color-border)'}; background:#0A0F1A;">
+            <img src="${url}" alt="Product preview ${idx + 1}" style="width:100%; height:100%; object-fit:cover; display:block;" />
+            ${idx === 0 ? '<span style="position:absolute; top:2px; left:2px; background:var(--color-secondary); color:#0A0F1A; font-size:0.65rem; font-weight:800; padding:1px 5px; border-radius:3px;">COVER</span>' : ''}
+            <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(10, 15, 26, 0.85); display:flex; justify-content:space-between; padding:2px 4px;">
+                ${idx !== 0 ? `<button type="button" class="set-cover-btn" data-index="${idx}" title="Set as primary cover" style="background:none; border:none; color:var(--color-text-secondary); cursor:pointer; font-size:0.7rem; padding:0;">★</button>` : '<span></span>'}
+                <button type="button" class="remove-img-btn" data-index="${idx}" title="Remove image" style="background:none; border:none; color:#FB7185; cursor:pointer; font-size:0.75rem; padding:0; font-weight:bold;">✕</button>
+            </div>
+        </div>
+    `).join('');
+
+    // Wire thumbnail actions
+    container.querySelectorAll('.set-cover-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const index = parseInt(btn.getAttribute('data-index'), 10);
+            if (!isNaN(index) && index < currentProductImages.length) {
+                const selected = currentProductImages.splice(index, 1)[0];
+                currentProductImages.unshift(selected);
+                renderImagePreviews();
+            }
+        });
+    });
+
+    container.querySelectorAll('.remove-img-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const index = parseInt(btn.getAttribute('data-index'), 10);
+            if (!isNaN(index) && index < currentProductImages.length) {
+                currentProductImages.splice(index, 1);
+                renderImagePreviews();
+            }
+        });
+    });
+}
+
+async function uploadFiles(files) {
+    if (!files || files.length === 0) return;
+
+    const statusEl = document.getElementById("image-upload-status");
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+    if (currentProductImages.length + files.length > 5) {
+        if (statusEl) {
+            statusEl.style.display = "block";
+            statusEl.style.background = "rgba(251, 113, 133, 0.15)";
+            statusEl.style.color = "#FB7185";
+            statusEl.textContent = "Maximum 5 images allowed per product listing.";
+        }
+        return;
+    }
+
+    const formData = new FormData();
+    for (const file of files) {
+        if (!allowedTypes.includes(file.type.toLowerCase())) {
+            if (statusEl) {
+                statusEl.style.display = "block";
+                statusEl.style.background = "rgba(251, 113, 133, 0.15)";
+                statusEl.style.color = "#FB7185";
+                statusEl.textContent = `File "${file.name}" has an unsupported format. Only JPG, PNG, and WebP are allowed.`;
+            }
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            if (statusEl) {
+                statusEl.style.display = "block";
+                statusEl.style.background = "rgba(251, 113, 133, 0.15)";
+                statusEl.style.color = "#FB7185";
+                statusEl.textContent = `File "${file.name}" exceeds the 5MB file size limit.`;
+            }
+            return;
+        }
+        formData.append("images", file);
+    }
+
+    if (statusEl) {
+        statusEl.style.display = "block";
+        statusEl.style.background = "rgba(124, 108, 242, 0.15)";
+        statusEl.style.color = "var(--color-primary)";
+        statusEl.textContent = "Uploading image(s)...";
+    }
+
+    try {
+        const res = await api.post('/products/upload', formData);
+        if (res && res.success && Array.isArray(res.urls)) {
+            currentProductImages.push(...res.urls);
+            renderImagePreviews();
+
+            if (statusEl) {
+                statusEl.style.display = "block";
+                statusEl.style.background = "rgba(45, 212, 191, 0.15)";
+                statusEl.style.color = "var(--color-secondary)";
+                statusEl.textContent = `${res.urls.length} photo(s) added successfully!`;
+                setTimeout(() => { statusEl.style.display = "none"; }, 3000);
+            }
+        }
+    } catch (err) {
+        if (statusEl) {
+            statusEl.style.display = "block";
+            statusEl.style.background = "rgba(251, 113, 133, 0.15)";
+            statusEl.style.color = "#FB7185";
+            if (err.status === 503) {
+                statusEl.textContent = "Cloudinary service unconfigured on server. Please use direct image URL below.";
+            } else {
+                statusEl.textContent = err.message || "Failed to upload image. Please try again or use direct image URL.";
+            }
+        }
+    }
+}
 
 function resetForm() {
     const form = document.getElementById("add-product-form");
@@ -34,6 +158,11 @@ function resetForm() {
     document.getElementById("add-product-message").textContent = "";
     editMode = false;
     editProductId = null;
+    currentProductImages = [];
+    renderImagePreviews();
+
+    const statusEl = document.getElementById("image-upload-status");
+    if (statusEl) statusEl.style.display = "none";
 
     const submitBtn = document.getElementById("submit-prod-btn");
     if (submitBtn) submitBtn.textContent = "Add Product to Marketplace";
@@ -51,7 +180,7 @@ async function fetchOwnerData(user) {
     try {
         const [pRes, bRes] = await Promise.allSettled([
             api.get('/products/owner/listings'),
-            api.get('/bookings/my')
+            api.get('/bookings/my?role=owner')
         ]);
 
         if (pRes.status === 'fulfilled' && pRes.value && pRes.value.success) {
@@ -374,15 +503,26 @@ async function handleFormSubmit(event) {
     const category = document.getElementById("prod-category").value.trim();
     const price = Number(document.getElementById("prod-price").value);
     const availability = document.getElementById("prod-availability").checked;
-    const image = document.getElementById("prod-image").value.trim();
     const msgDiv = document.getElementById("add-product-message");
 
-    if (!title || !desc || !category || !image || isNaN(price) || price <= 0) {
-        msgDiv.textContent = "Please fill all fields with valid information.";
+    // Check if user entered a URL in the URL input without clicking "+ Add URL"
+    const urlInput = document.getElementById("prod-image-url");
+    if (urlInput && urlInput.value.trim()) {
+        const val = urlInput.value.trim();
+        if (!currentProductImages.includes(val)) {
+            currentProductImages.push(val);
+            urlInput.value = "";
+            renderImagePreviews();
+        }
+    }
+
+    if (!title || !desc || !category || currentProductImages.length === 0 || isNaN(price) || price <= 0) {
+        msgDiv.textContent = "Please fill all fields and provide at least one product photo.";
         msgDiv.style.color = "#FB7185";
         return;
     }
 
+    const primaryImage = currentProductImages[0];
     const user = getCurrentUser();
     if (!user) return;
 
@@ -397,7 +537,8 @@ async function handleFormSubmit(event) {
                 category,
                 price_per_day: price,
                 availability,
-                image
+                image: primaryImage,
+                images: currentProductImages
             });
             msgDiv.textContent = `Product "${title}" updated successfully!`;
             msgDiv.style.color = "var(--color-secondary)";
@@ -412,7 +553,8 @@ async function handleFormSubmit(event) {
                 category,
                 price_per_day: price,
                 availability,
-                image,
+                image: primaryImage,
+                images: currentProductImages,
                 rating: existing ? existing.rating : 0,
                 approval_status: existing && existing.approval_status ? existing.approval_status : 'approved'
             });
@@ -427,7 +569,8 @@ async function handleFormSubmit(event) {
                 category,
                 price_per_day: price,
                 availability,
-                image
+                image: primaryImage,
+                images: currentProductImages
             });
             msgDiv.textContent = `Product "${title}" submitted! It is now pending administrative approval.`;
             msgDiv.style.color = "var(--color-secondary)";
@@ -439,6 +582,17 @@ async function handleFormSubmit(event) {
                 title,
                 description: desc,
                 category,
+                price_per_day: price,
+                availability,
+                image: primaryImage,
+                images: currentProductImages,
+                rating: 0,
+                approval_status: 'pending'
+            });
+            msgDiv.textContent = `Product "${title}" added to local storage.`;
+            msgDiv.style.color = "var(--color-secondary)";
+        }
+    }
                 price_per_day: price,
                 availability,
                 image,
@@ -474,7 +628,11 @@ async function handleActionClicks(e) {
         document.getElementById('prod-category').value = product.category;
         document.getElementById('prod-price').value = product.price_per_day;
         document.getElementById('prod-availability').checked = product.availability;
-        document.getElementById('prod-image').value = product.image;
+
+        currentProductImages = Array.isArray(product.images) && product.images.length > 0
+            ? [...product.images]
+            : (product.image ? [product.image] : []);
+        renderImagePreviews();
 
         editMode = true;
         editProductId = pid;
@@ -618,6 +776,48 @@ export async function init() {
 
     const cancelBtn = document.getElementById("cancel-edit-btn");
     if (cancelBtn) cancelBtn.addEventListener("click", resetForm);
+
+    // Setup Gallery and Camera upload handlers
+    const fileInput = document.getElementById("prod-file-input");
+    if (fileInput) {
+        fileInput.addEventListener("change", (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                uploadFiles(Array.from(e.target.files));
+                e.target.value = "";
+            }
+        });
+    }
+
+    const cameraInput = document.getElementById("prod-camera-input");
+    if (cameraInput) {
+        cameraInput.addEventListener("change", (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                uploadFiles(Array.from(e.target.files));
+                e.target.value = "";
+            }
+        });
+    }
+
+    const addUrlBtn = document.getElementById("add-url-img-btn");
+    if (addUrlBtn) {
+        addUrlBtn.addEventListener("click", () => {
+            const urlInput = document.getElementById("prod-image-url");
+            if (urlInput && urlInput.value.trim()) {
+                const val = urlInput.value.trim();
+                if (currentProductImages.length >= 5) {
+                    alert("Maximum 5 images allowed per product.");
+                    return;
+                }
+                if (!currentProductImages.includes(val)) {
+                    currentProductImages.push(val);
+                    urlInput.value = "";
+                    renderImagePreviews();
+                }
+            }
+        });
+    }
+
+    renderImagePreviews();
 
     document.addEventListener("click", handleActionClicks);
 }
