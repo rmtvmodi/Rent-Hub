@@ -8,6 +8,7 @@ import {
 } from "./storage.js";
 import { getCurrentUser, syncNavbarAuth } from "./auth.js";
 import { api, getStoredToken } from "./api.js";
+import { showToast } from "./toast.js";
 
 let liveWishlistSet = new Set();
 
@@ -16,7 +17,7 @@ function isInWishlist(productId) {
     const user = getCurrentUser();
     if (!user) return false;
     if (liveWishlistSet.has(productId)) return true;
-    return getWishlists().some(w => w.customer_id === user.user_id && w.product_id === productId);
+    return getWishlists().some(w => (w.customer_id === user.user_id || w.customer === user.user_id) && w.product_id === productId);
 }
 
 /** Render a single product card */
@@ -26,40 +27,50 @@ function createCard(product) {
 
     const pid = product.product_id || product._id;
     const inWishlist = isInWishlist(pid);
-    const ratingText = product.ratingText || (product.numReviews > 0 ? `${product.rating} ★ (${product.numReviews})` : 'No reviews yet');
+    const ratingText = product.ratingText || (product.numReviews > 0 ? `${product.rating} ★ (${product.numReviews})` : 'New');
     const isAvailable = product.availability && product.approval_status !== 'rejected';
 
     card.innerHTML = `
-        <div style="position:relative;">
-            <img src="${product.image}" alt="${product.title}" style="width:100%; height:180px; object-fit:cover; border-radius:var(--radius-sm);" />
-            <span class="badge ${isAvailable ? 'accepted' : 'rejected'}" style="position:absolute; top:8px; right:8px; box-shadow:0 2px 8px rgba(0,0,0,0.5);">
+        <div class="product-card-img-wrapper">
+            <img src="${product.image}" alt="${product.title}" loading="lazy" />
+            <span class="badge ${isAvailable ? 'accepted' : 'rejected'}" style="position:absolute; top:8px; right:8px; box-shadow:0 2px 8px rgba(0,0,0,0.5); font-size:0.7rem; padding:0.2rem 0.5rem;">
                 ${isAvailable ? '● Available' : '○ Rented'}
             </span>
+            <button class="btn wishlist-btn" data-id="${pid}" aria-label="${inWishlist ? 'Remove from wishlist' : 'Save to wishlist'}" style="position:absolute; top:8px; left:8px; background:rgba(15,23,42,0.75); backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.15); border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:0.95rem; color:${inWishlist ? '#FB7185' : 'var(--color-text-secondary)'}; cursor:pointer; z-index:2;">
+                ${inWishlist ? '♥' : '♡'}
+            </button>
         </div>
-        <div style="padding-top:0.75rem; display:flex; flex-direction:column; flex:1;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
-                <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-primary); font-weight:700;">${product.category}</span>
-                <span style="font-size:0.8rem; color:var(--color-secondary); font-weight:600;">${ratingText}</span>
+        <div class="product-card-body" style="padding-top:0.6rem; display:flex; flex-direction:column; flex:1;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15rem;">
+                <span style="font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-primary); font-weight:700;">${product.category}</span>
+                <span style="font-size:0.75rem; color:var(--color-secondary); font-weight:600;">${ratingText}</span>
             </div>
-            <h3 style="margin:0.2rem 0 0.4rem; font-size:1.15rem; color:var(--color-text-primary);">${product.title}</h3>
-            <p style="margin:0 0 0.5rem; color:var(--color-text-secondary); font-size:0.85rem; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
-                ${product.description}
-            </p>
-            <div style="margin-top:auto; padding-top:0.5rem; border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:baseline;">
-                <span style="font-size:0.8rem; color:var(--color-text-muted);">Daily Rate</span>
-                <span style="color:var(--color-secondary); font-weight:700; font-size:1.15rem;">₹${product.price_per_day} <span style="font-size:0.75rem; font-weight:400; color:var(--color-text-muted);">/day</span></span>
+            <h3 class="product-card-title">${product.title}</h3>
+            <div style="margin-top:auto; padding-top:0.4rem; display:flex; justify-content:space-between; align-items:baseline;">
+                <span class="product-card-price">₹${product.price_per_day} <span style="font-size:0.72rem; font-weight:400; color:var(--color-text-muted);">/day</span></span>
             </div>
-            <div style="display:flex; gap:0.4rem; margin-top:0.75rem;">
-                <button class="btn wishlist-btn" data-id="${pid}" style="font-size:0.8rem; padding:0.4rem 0.6rem; flex:1;">
-                    ${inWishlist ? '♥ Saved' : '♡ Wishlist'}
-                </button>
-                <button class="btn primary rent-btn" data-id="${pid}" style="font-size:0.8rem; padding:0.4rem 0.75rem; flex:1.2;">
-                    Rent Now
+            <div style="display:flex; gap:0.4rem; margin-top:0.55rem;">
+                <button class="btn primary rent-btn" data-id="${pid}" style="width:100%; font-size:0.8rem; padding:0.4rem 0.6rem;">
+                    View & Rent
                 </button>
             </div>
         </div>
     `;
     return card;
+}
+
+/** Render skeleton loading cards */
+function renderSkeletonCards(count = 8) {
+    const grid = document.getElementById('product-grid');
+    if (!grid) return;
+    grid.innerHTML = Array.from({ length: count }).map(() => `
+        <div class="skeleton-card">
+            <div class="skeleton-shimmer skeleton-img"></div>
+            <div class="skeleton-shimmer skeleton-line short"></div>
+            <div class="skeleton-shimmer skeleton-line"></div>
+            <div class="skeleton-shimmer skeleton-line medium"></div>
+        </div>
+    `).join('');
 }
 
 /** Render the whole product grid according to current filters */
@@ -106,9 +117,9 @@ export async function renderProducts() {
     let products = [];
     let isLiveBackend = false;
 
-    // Refresh live wishlist if token available and user is a customer
+    // Refresh live wishlist if token available for logged-in user
     const user = getCurrentUser();
-    if (user && user.role === 'customer' && getStoredToken()) {
+    if (user && getStoredToken()) {
         try {
             const wlRes = await api.get('/wishlists');
             if (wlRes && wlRes.success && Array.isArray(wlRes.wishlist)) {
@@ -117,6 +128,11 @@ export async function renderProducts() {
         } catch (e) {
             // Keep existing set
         }
+    }
+
+    // Show skeleton placeholders if grid is empty
+    if (grid && (!grid.children || grid.children.length === 0)) {
+        renderSkeletonCards(8);
     }
 
     // Attempt live API query
@@ -243,7 +259,7 @@ function clearAllFilters() {
 async function toggleWishlist(productId) {
     const user = getCurrentUser();
     if (!user) {
-        alert('Please log in as a Customer to save items to your wishlist.');
+        showToast('Please sign in to save items to your wishlist.', 'info');
         return;
     }
 
@@ -252,16 +268,19 @@ async function toggleWishlist(productId) {
         if (liveWishlistSet.has(productId)) {
             await api.delete(`/wishlists/${productId}`);
             liveWishlistSet.delete(productId);
+            showToast('Removed from wishlist', 'info');
         } else {
             await api.post('/wishlists', { product_id: productId });
             liveWishlistSet.add(productId);
+            showToast('Saved to your wishlist ♥', 'success');
         }
     } catch (err) {
         // Fall back to local storage
-        const existing = getWishlists().find(w => w.customer_id === user.user_id && w.product_id === productId);
+        const existing = getWishlists().find(w => (w.customer_id === user.user_id || w.customer === user.user_id) && w.product_id === productId);
         if (existing) {
             removeFromWishlist(existing.wishlist_id);
             liveWishlistSet.delete(productId);
+            showToast('Removed from wishlist', 'info');
         } else {
             const wishlistItem = {
                 wishlist_id: genId('wishlist'),
@@ -270,6 +289,7 @@ async function toggleWishlist(productId) {
             };
             addToWishlist(wishlistItem);
             liveWishlistSet.add(productId);
+            showToast('Saved to your wishlist ♥', 'success');
         }
     }
     renderProducts();

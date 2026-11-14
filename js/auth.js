@@ -213,10 +213,11 @@ export function syncNavbarAuth() {
                 navAuth.innerHTML = `<a href="admin-dashboard.html" id="nav-dashboard-link"${currentFile === 'admin-dashboard.html' ? ' class="active"' : ''}>Admin Panel</a>${notifButtonHtml}<a href="#" id="logout-btn" style="margin-left:0.5rem;">Logout</a>`;
             } else {
                 navAuth.innerHTML = `
-                    <a href="customer-dashboard.html"${currentFile === 'customer-dashboard.html' ? ' class="active"' : ''} title="My Rentals">Rentals</a>
-                    <a href="owner-dashboard.html"${currentFile === 'owner-dashboard.html' ? ' class="active"' : ''} title="My Listings" style="margin-left:0.5rem;">Listings</a>
+                    <a href="dashboard.html?tab=wishlist" title="My Wishlist" style="color:var(--color-text-secondary); font-size:1.05rem; padding:0.3rem 0.5rem; text-decoration:none;">🤍</a>
+                    <a href="dashboard.html?tab=add-product" class="btn" style="font-size:0.8rem; padding:0.35rem 0.75rem; border:1px solid var(--color-primary); color:var(--color-primary); border-radius:var(--radius-sm); font-weight:600;">+ List Equipment</a>
+                    <a href="dashboard.html"${currentFile === 'dashboard.html' ? ' class="active"' : ''} title="Unified Account Hub" style="font-weight:600;">My Account</a>
                     ${notifButtonHtml}
-                    <a href="#" id="logout-btn" style="margin-left:0.5rem;">Logout</a>
+                    <a href="#" id="logout-btn" style="margin-left:0.4rem;">Logout</a>
                 `;
             }
         } else if (navLinks && (navLinks.classList.contains("nav-right") || navLinks.tagName === "DIV")) {
@@ -234,8 +235,8 @@ export function syncNavbarAuth() {
                     <a href="index.html"${currentFile === 'index.html' ? ' class="active"' : ''}>Home</a>
                     <a href="products.html"${currentFile === 'products.html' ? ' class="active"' : ''}>Browse Products</a>
                     <a href="about.html"${currentFile === 'about.html' ? ' class="active"' : ''}>About</a>
-                    <a href="customer-dashboard.html"${currentFile === 'customer-dashboard.html' ? ' class="active"' : ''}>My Rentals</a>
-                    <a href="owner-dashboard.html"${currentFile === 'owner-dashboard.html' ? ' class="active"' : ''}>My Listings</a>
+                    <a href="dashboard.html?tab=add-product">+ List Equipment</a>
+                    <a href="dashboard.html"${currentFile === 'dashboard.html' ? ' class="active"' : ''}>My Account</a>
                     ${notifButtonHtml}
                     <a href="#" id="logout-btn" style="margin-left:0.5rem;">Logout</a>
                 `;
@@ -294,9 +295,10 @@ export async function handleRegister(event) {
         messageDiv.textContent = "Please enter a valid email address.";
         return;
     }
-    if (password.length < 6) {
+    const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+    if (!pwdRegex.test(password)) {
         messageDiv.style.color = "#FB7185";
-        messageDiv.textContent = "Password must be at least 6 characters long.";
+        messageDiv.textContent = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
         return;
     }
     if (password !== confirm) {
@@ -357,18 +359,19 @@ export async function handleLogin(event) {
             messageDiv.textContent = "Login successful! Redirecting...";
 
             setTimeout(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirectUrl = urlParams.get('redirect');
+                if (redirectUrl) {
+                    window.location.href = decodeURIComponent(redirectUrl);
+                    return;
+                }
+
                 switch (user.role) {
-                    case "customer":
-                        window.location.href = "customer-dashboard.html";
-                        break;
-                    case "owner":
-                        window.location.href = "owner-dashboard.html";
-                        break;
                     case "admin":
                         window.location.href = "admin-dashboard.html";
                         break;
                     default:
-                        window.location.href = "index.html";
+                        window.location.href = "dashboard.html";
                 }
             }, 500);
             return;

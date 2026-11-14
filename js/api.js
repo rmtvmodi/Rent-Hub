@@ -97,14 +97,15 @@ export function clearStoredAuth() {
 }
 
 /**
- * Centralized fetch helper for all REST endpoints
+ * Centralized fetch helper for all REST endpoints with configurable per-request timeouts
  */
 export async function apiRequest(endpoint, {
     method = 'GET',
     body = null,
     params = null,
     headers = {},
-    requiresAuth = false
+    requiresAuth = false,
+    timeoutMs = 15000 // Configurable per-request timeout (e.g. 60000ms for uploads, 0 for unlimited)
 } = {}) {
     let url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
 
@@ -134,16 +135,26 @@ export async function apiRequest(endpoint, {
         defaultHeaders['Authorization'] = `Bearer ${token}`;
     }
 
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    let timer = null;
+
     const fetchConfig = {
         method,
         headers: {
             ...defaultHeaders,
             ...headers
-        }
+        },
+        signal: controller ? controller.signal : undefined
     };
 
     if (body) {
         fetchConfig.body = (body instanceof FormData) ? body : JSON.stringify(body);
+    }
+
+    if (controller && timeoutMs > 0) {
+        timer = setTimeout(() => {
+            controller.abort(new Error(`Request timed out after ${timeoutMs}ms`));
+        }, timeoutMs);
     }
 
     try {
@@ -179,6 +190,13 @@ export async function apiRequest(endpoint, {
             const err = new Error(data && data.message ? data.message : `API request failed with status ${res.status}`);
             err.status = res.status;
             err.data = data;
+
+            // Extract retry window on HTTP 429
+            if (res.status === 429) {
+                const headerRetry = parseInt(res.headers.get('Retry-After'), 10);
+                err.retryAfter = (data && typeof data.retryAfter === 'number') ? data.retryAfter : (!isNaN(headerRetry) ? headerRetry : null);
+            }
+
             throw err;
         }
 
@@ -187,11 +205,21 @@ export async function apiRequest(endpoint, {
         // If it was already our formatted error, rethrow
         if (err.status) throw err;
 
+        // Check if aborted due to timeout
+        if (err.name === 'AbortError' || err.message?.includes('timed out')) {
+            const timeoutError = new Error('The request timed out. Please try again.');
+            timeoutError.status = 408;
+            timeoutError.isTimeout = true;
+            throw timeoutError;
+        }
+
         // Otherwise handle network failure or server unreachable
         const networkError = new Error('Could not connect to the RentHub server. Please check your connection and try again.');
         networkError.status = 0;
         networkError.isNetworkError = true;
         throw networkError;
+    } finally {
+        if (timer) clearTimeout(timer);
     }
 }
 

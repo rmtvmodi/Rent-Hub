@@ -2,7 +2,7 @@
 // Authentication & session routes for RentHub
 
 import express from 'express';
-import { register, login, getMe, logout, forgotPassword, resetPassword } from '../controllers/authController.js';
+import { register, login, getMe, logout, forgotPassword, resetPassword, updatePassword } from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { createRateLimiter } from '../middleware/rateLimiter.js';
 
@@ -24,5 +24,6 @@ router.put('/resetpassword/:token', passwordResetLimiter, resetPassword);
 
 // Protected routes (Requires valid Bearer JWT)
 router.get('/me', protect, getMe);
+router.put('/password', protect, updatePassword);
 
 export default router;

@@ -330,7 +330,7 @@ async function attemptBooking(product) {
                 alertDiv.textContent = 'Booking request submitted successfully! Redirecting...';
             }
             setTimeout(() => {
-                window.location.href = 'customer-dashboard.html';
+                window.location.href = 'dashboard.html?tab=rentals';
             }, 1000);
             return;
         }
@@ -371,7 +371,7 @@ async function attemptBooking(product) {
                 alertDiv.textContent = 'Booking recorded locally (Backend offline). Redirecting...';
             }
             setTimeout(() => {
-                window.location.href = 'customer-dashboard.html';
+                window.location.href = 'dashboard.html?tab=rentals';
             }, 1000);
             return;
         }

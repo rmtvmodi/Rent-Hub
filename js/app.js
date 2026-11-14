@@ -58,27 +58,23 @@ async function loadFeatured() {
         const card = document.createElement('div');
         card.className = 'card product-card';
         card.innerHTML = `
-            <div style="position:relative;">
-                <img src="${p.image}" alt="${p.title}" style="width:100%; height:180px; object-fit:cover; border-radius:var(--radius-sm);" />
-                <span class="badge ${p.availability ? 'accepted' : 'rejected'}" style="position:absolute; top:8px; right:8px;">
+            <div class="product-card-img-wrapper">
+                <img src="${p.image}" alt="${p.title}" loading="lazy" />
+                <span class="badge ${p.availability ? 'accepted' : 'rejected'}" style="position:absolute; top:8px; right:8px; box-shadow:0 2px 8px rgba(0,0,0,0.5); font-size:0.7rem; padding:0.2rem 0.5rem;">
                     ${p.availability ? '● Available' : '○ Rented'}
                 </span>
             </div>
-            <div style="padding-top:0.75rem; display:flex; flex-direction:column; flex:1;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
-                    <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--color-primary); font-weight:700;">${p.category}</span>
-                    <span style="font-size:0.8rem; color:var(--color-secondary); font-weight:600;">${p.ratingText}</span>
+            <div class="product-card-body" style="padding-top:0.6rem; display:flex; flex-direction:column; flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15rem;">
+                    <span style="font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--color-primary); font-weight:700;">${p.category}</span>
+                    <span style="font-size:0.75rem; color:var(--color-secondary); font-weight:600;">${p.ratingText}</span>
                 </div>
-                <h3 style="margin:0.2rem 0 0.4rem; font-size:1.15rem; color:var(--color-text-primary);">${p.title}</h3>
-                <p style="margin:0 0 0.5rem; color:var(--color-text-secondary); font-size:0.85rem; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
-                    ${p.description}
-                </p>
-                <div style="margin-top:auto; padding-top:0.5rem; border-top:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:baseline;">
-                    <span style="font-size:0.8rem; color:var(--color-text-muted);">Daily Rate</span>
-                    <span style="color:var(--color-secondary); font-weight:700; font-size:1.15rem;">₹${p.price_per_day} <span style="font-size:0.75rem; font-weight:400; color:var(--color-text-muted);">/day</span></span>
+                <h3 class="product-card-title">${p.title}</h3>
+                <div style="margin-top:auto; padding-top:0.4rem; display:flex; justify-content:space-between; align-items:baseline;">
+                    <span class="product-card-price">₹${p.price_per_day} <span style="font-size:0.72rem; font-weight:400; color:var(--color-text-muted);">/day</span></span>
                 </div>
-                <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
-                    <a href="product-details.html?pid=${p.product_id}" class="btn primary" style="width:100%; text-align:center;">Rent This Item</a>
+                <div style="margin-top:0.55rem;">
+                    <a href="product-details.html?pid=${p.product_id}" class="btn primary" style="display:block; text-align:center; width:100%; font-size:0.8rem; padding:0.4rem 0.6rem;">Rent Now</a>
                 </div>
             </div>
         `;

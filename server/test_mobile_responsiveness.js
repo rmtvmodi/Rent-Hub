@@ -105,22 +105,32 @@ async function runMobileResponsivenessTests() {
                 assert.strictEqual(overflow, false);
             });
 
-            // 4. Owner Dashboard Form Responsiveness
-            await test(`[${vp.width}px] Owner Dashboard and photo upload controls fit without horizontal scroll`, async () => {
-                await page.goto(`${BASE_URL}/owner-dashboard.html`, { waitUntil: 'domcontentloaded' });
-                const wideElements = await page.evaluate((vpWidth) => {
-                    const docWidth = document.documentElement.scrollWidth;
-                    if (docWidth <= vpWidth + 2) return null;
-                    return Array.from(document.querySelectorAll('*'))
-                        .filter(el => el.offsetWidth > vpWidth)
-                        .slice(0, 10)
-                        .map(el => `${el.tagName}#${el.id}.${el.className} (w:${el.offsetWidth})`);
+            // 4. Products Catalog 2-Column Mobile Grid Check
+            await test(`[${vp.width}px] Products Catalog renders 2 columns on mobile and zero overflow`, async () => {
+                await page.goto(`${BASE_URL}/products.html`, { waitUntil: 'domcontentloaded' });
+                const gridData = await page.evaluate((width) => {
+                    const grid = document.querySelector('.product-grid');
+                    const isOverflow = document.documentElement.scrollWidth > window.innerWidth + 2;
+                    let cols = 0;
+                    if (grid) {
+                        const style = window.getComputedStyle(grid);
+                        const template = style.getPropertyValue('grid-template-columns') || '';
+                        cols = template.trim().split(/\s+/).filter(Boolean).length;
+                    }
+                    return { isOverflow, cols, width };
                 }, vp.width);
-                if (wideElements) {
-                    console.log(`Wide elements at ${vp.width}px:`, wideElements);
+
+                assert.strictEqual(gridData.isOverflow, false, `Products page must not horizontally overflow at ${vp.width}px`);
+                if (vp.width <= 768 && gridData.cols > 0) {
+                    assert.strictEqual(gridData.cols, 2, `Product grid must compute exactly 2 columns on mobile at ${vp.width}px, got ${gridData.cols}`);
                 }
+            });
+
+            // 5. Unified Dashboard Responsiveness
+            await test(`[${vp.width}px] Unified Dashboard fits without horizontal scroll`, async () => {
+                await page.goto(`${BASE_URL}/dashboard.html`, { waitUntil: 'domcontentloaded' });
                 const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2);
-                assert.strictEqual(overflow, false);
+                assert.strictEqual(overflow, false, `Dashboard must not horizontally overflow at ${vp.width}px`);
             });
         }
 

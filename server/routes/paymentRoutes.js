@@ -14,8 +14,8 @@ const router = express.Router();
 
 router.use(protect);
 
-router.post('/', authorize('customer'), processPayment);
-router.get('/my', authorize('customer'), getMyPayments);
+router.post('/', authorize('customer', 'owner'), processPayment);
+router.get('/my', authorize('customer', 'owner'), getMyPayments);
 router.get('/', authorize('admin'), getAllPayments);
 router.get('/:id', getPaymentById);
 

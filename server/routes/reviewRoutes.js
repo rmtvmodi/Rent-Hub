@@ -19,8 +19,8 @@ router.get('/product/:productId', getProductReviews);
 // Authenticated customer & moderation routes
 router.use(protect);
 
-router.post('/', authorize('customer'), addReview);
-router.put('/:id', authorize('customer'), updateReview);
+router.post('/', authorize('customer', 'owner'), addReview);
+router.put('/:id', authorize('customer', 'owner'), updateReview);
 router.delete('/:id', deleteReview); // Customer (own) or Admin (moderation)
 router.get('/', authorize('admin'), getAllReviews);
 

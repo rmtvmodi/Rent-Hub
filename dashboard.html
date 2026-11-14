@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Account Dashboard – RentHub</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .dashboard-tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 0.25rem;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .dashboard-tab-btn {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--color-text-secondary);
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 0.65rem 1rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all var(--transition-fast);
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        }
+        .dashboard-tab-btn:hover {
+            color: var(--color-text-primary);
+            background: rgba(124, 108, 242, 0.08);
+        }
+        .dashboard-tab-btn.active {
+            color: var(--color-secondary);
+            border-bottom-color: var(--color-secondary);
+            background: rgba(45, 212, 191, 0.08);
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.2s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .dashboard-table-container {
+            overflow-x: auto;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+        }
+        .dashboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        .dashboard-table th, .dashboard-table td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .dashboard-table th {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--color-text-muted);
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        @media (max-width: 600px) {
+            .dashboard-tabs {
+                gap: 0.25rem;
+            }
+            .dashboard-tab-btn {
+                padding: 0.5rem 0.65rem;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a href="index.html" class="logo">RentHub</a>
+        <ul class="nav-links" id="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="products.html">Browse Products</a></li>
+            <li><a href="about.html">About</a></li>
+            <li id="nav-auth"><a href="login.html">Login / Register</a></li>
+        </ul>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-controls="nav-links" aria-expanded="false">&#9776;</button>
+    </nav>
+
+    <!-- Main Unified Account Hub -->
+    <main class="dashboard" style="max-width:1200px; margin:auto; padding:2rem 1.5rem 4rem;">
+        <!-- User Welcome Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+            <div>
+                <div style="display:flex; align-items:center; gap:0.6rem;">
+                    <h2 id="user-display-name" style="margin:0; font-size:1.6rem;">My Account</h2>
+                    <span id="user-role-badge" class="badge" style="background:rgba(124,108,242,0.2); color:var(--color-primary); font-size:0.75rem;">Verified Member</span>
+                </div>
+                <p id="user-display-email" style="margin:0.25rem 0 0; color:var(--color-text-secondary); font-size:0.92rem;">Rent top gear or monetize your own equipment from one unified hub.</p>
+            </div>
+            <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+                <button id="quick-add-btn" class="btn primary">+ List New Item</button>
+                <a href="products.html" class="btn" style="border:1px solid var(--color-border); background:var(--color-surface);">Browse Rentals</a>
+            </div>
+        </div>
+
+        <!-- Summary Metrics -->
+        <div id="stats" style="margin-bottom:2rem;">
+            <div class="stat-card">
+                <h3>My Rentals</h3>
+                <p id="stat-total-rentals">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Active Rentals</h3>
+                <p id="stat-active-rentals">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>My Listings</h3>
+                <p id="stat-total-listings">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Earnings (₹)</h3>
+                <p id="stat-total-earnings" style="color:var(--color-secondary);">₹0</p>
+            </div>
+        </div>
+
+        <!-- Dashboard Navigation Tabs -->
+        <div class="dashboard-tabs" role="tablist">
+            <button class="dashboard-tab-btn active" data-tab="rentals" role="tab" aria-selected="true">📦 My Rentals</button>
+            <button class="dashboard-tab-btn" data-tab="listings" role="tab" aria-selected="false">🏷️ My Equipment Listings</button>
+            <button class="dashboard-tab-btn" data-tab="add-product" role="tab" aria-selected="false">➕ List Equipment</button>
+            <button class="dashboard-tab-btn" data-tab="requests" role="tab" aria-selected="false">📩 Booking Requests</button>
+            <button class="dashboard-tab-btn" data-tab="wishlist" role="tab" aria-selected="false">🤍 Wishlist</button>
+            <button class="dashboard-tab-btn" data-tab="profile" role="tab" aria-selected="false">⚙️ Profile & Security</button>
+        </div>
+
+        <!-- TAB 1: My Rentals (Customer View) -->
+        <section id="tab-rentals" class="tab-pane active" role="tabpanel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3 style="margin:0; font-size:1.25rem;">My Bookings & Rental History</h3>
+                <span style="font-size:0.85rem; color:var(--color-text-muted);">Track timeline, pay, and request returns</span>
+            </div>
+            <div class="dashboard-table-container">
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Rental Dates</th>
+                            <th>Total</th>
+                            <th>Booking Status</th>
+                            <th>Payment</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rentals-tbody">
+                        <tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--color-text-muted);">Loading your rentals...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TAB 2: My Equipment Listings (Lender View) -->
+        <section id="tab-listings" class="tab-pane" role="tabpanel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+                <div>
+                    <h3 style="margin:0; font-size:1.25rem;">My Equipment Inventory</h3>
+                    <span style="font-size:0.85rem; color:var(--color-text-muted);">Toggle availability, update pricing, or edit photos</span>
+                </div>
+                <button class="btn primary" onclick="document.querySelector('[data-tab=add-product]').click()">+ Add Listing</button>
+            </div>
+            <div class="dashboard-table-container">
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>Equipment</th>
+                            <th>Category</th>
+                            <th>Daily Rate</th>
+                            <th>Performance</th>
+                            <th>Status</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listings-tbody">
+                        <tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--color-text-muted);">Loading your listings...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TAB 3: List Equipment (+ Add Product) -->
+        <section id="tab-add-product" class="tab-pane" role="tabpanel">
+            <div class="card" style="max-width:760px; margin:auto; padding:2rem 1.75rem;">
+                <h3 id="form-heading" style="margin-top:0; margin-bottom:0.4rem; font-size:1.4rem;">List an Item for Rent</h3>
+                <p style="color:var(--color-text-secondary); font-size:0.92rem; margin-bottom:1.5rem;">
+                    Turn your unused cameras, laptops, tools, or tech into recurring earnings. Listings are reviewed promptly by our moderators.
+                </p>
+
+                <form id="add-product-form" class="auth-form" style="max-width:100%;">
+                    <label for="prod-title">Product Title
+                        <input type="text" id="prod-title" placeholder="e.g. Sony Alpha A7 IV Camera" required maxlength="120" />
+                    </label>
+
+                    <label for="prod-desc">Detailed Description
+                        <textarea id="prod-desc" rows="4" placeholder="Describe specifications, condition, included accessories, and battery health" required maxlength="1000"></textarea>
+                    </label>
+
+                    <div class="form-row-2col">
+                        <label for="prod-category">Category
+                            <select id="prod-category" required>
+                                <option value="">Select Category</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Cameras">Cameras</option>
+                                <option value="Laptops">Laptops</option>
+                                <option value="Bicycles">Bicycles</option>
+                                <option value="Projectors">Projectors</option>
+                                <option value="Tools">Tools</option>
+                                <option value="Gaming">Gaming</option>
+                            </select>
+                        </label>
+
+                        <label for="prod-price">Daily Rental Rate (₹)
+                            <input type="number" id="prod-price" min="1" placeholder="500" required />
+                        </label>
+                    </div>
+
+                    <!-- Image Upload Controls -->
+                    <div style="background:#0F1829; border:1px solid var(--color-border); border-radius:var(--radius); padding:1.25rem; margin:0.5rem 0;">
+                        <span style="font-weight:600; display:block; margin-bottom:0.5rem; color:var(--color-text-primary);">Product Photos (Up to 5 images)</span>
+                        <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+                            <label for="prod-file-input" class="btn" style="cursor:pointer; margin:0; display:inline-flex; align-items:center; gap:0.4rem; font-size:0.88rem;">
+                                📁 Choose from Gallery
+                                <input type="file" id="prod-file-input" accept="image/jpeg,image/png,image/webp" multiple style="display:none;" />
+                            </label>
+                            <label for="prod-camera-input" class="btn" style="cursor:pointer; margin:0; display:inline-flex; align-items:center; gap:0.4rem; font-size:0.88rem;">
+                                📷 Take Photo
+                                <input type="file" id="prod-camera-input" accept="image/jpeg,image/png,image/webp" capture="environment" style="display:none;" />
+                            </label>
+                        </div>
+
+                        <!-- Image URL fallback input -->
+                        <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+                            <input type="url" id="prod-image-url" placeholder="Or enter an image URL (https://...)" style="flex:1; font-size:0.88rem;" />
+                            <button type="button" id="add-url-btn" class="btn" style="font-size:0.85rem;">+ Add URL</button>
+                        </div>
+
+                        <div id="image-upload-status" style="margin-top:0.75rem; font-size:0.88rem; padding:0.4rem 0.65rem; border-radius:var(--radius-sm); display:none;"></div>
+
+                        <!-- Image Previews Container -->
+                        <div id="image-previews-container" style="display:flex; gap:0.6rem; flex-wrap:wrap; margin-top:1rem; min-height:60px; align-items:center;">
+                            <span style="font-size:0.85rem; color:var(--color-text-muted);">No images selected yet. The first photo will be used as the primary cover.</span>
+                        </div>
+                    </div>
+
+                    <label style="flex-direction:row; align-items:center; gap:0.6rem; margin-top:0.5rem; cursor:pointer;">
+                        <input type="checkbox" id="prod-availability" checked style="width:auto; margin:0;" />
+                        <span>Make equipment available for rent immediately upon approval</span>
+                    </label>
+
+                    <div id="add-product-message" style="margin-top:0.75rem; font-size:0.92rem; font-weight:500;"></div>
+
+                    <div style="display:flex; gap:0.75rem; margin-top:1rem;">
+                        <button type="submit" id="submit-prod-btn" class="btn primary" style="flex:1; padding:0.75rem;">Submit Listing</button>
+                        <button type="button" id="cancel-edit-btn" class="btn" style="display:none; padding:0.75rem;">Cancel Edit</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- TAB 4: Booking Requests on My Equipment -->
+        <section id="tab-requests" class="tab-pane" role="tabpanel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3 style="margin:0; font-size:1.25rem;">Incoming Rental Requests</h3>
+                <span style="font-size:0.85rem; color:var(--color-text-muted);">Review customer requests, confirm handovers and returns</span>
+            </div>
+            <div class="dashboard-table-container">
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>Requested Item</th>
+                            <th>Renter</th>
+                            <th>Dates</th>
+                            <th>Total (₹)</th>
+                            <th>Status</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requests-tbody">
+                        <tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--color-text-muted);">Loading incoming requests...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- TAB 5: Wishlist -->
+        <section id="tab-wishlist" class="tab-pane" role="tabpanel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3 style="margin:0; font-size:1.25rem;">Saved Items</h3>
+                <a href="products.html" class="btn" style="font-size:0.85rem;">Browse More Gear</a>
+            </div>
+            <div id="wishlist-grid" class="product-grid grid">
+                <!-- Wishlist cards injected here -->
+            </div>
+        </section>
+
+        <!-- TAB 6: Profile & Security -->
+        <section id="tab-profile" class="tab-pane" role="tabpanel">
+            <div class="card" style="max-width:540px; margin:auto; padding:2rem;">
+                <h3 style="margin-top:0; font-size:1.3rem;">Account & Profile Details</h3>
+                <div style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1.5rem; background:#0F1829; padding:1.25rem; border-radius:var(--radius); border:1px solid var(--color-border);">
+                    <div><span style="color:var(--color-text-muted); font-size:0.85rem;">Full Name:</span> <strong id="profile-name">-</strong></div>
+                    <div><span style="color:var(--color-text-muted); font-size:0.85rem;">Email Address:</span> <strong id="profile-email">-</strong></div>
+                    <div><span style="color:var(--color-text-muted); font-size:0.85rem;">Phone:</span> <strong id="profile-phone">-</strong></div>
+                    <div><span style="color:var(--color-text-muted); font-size:0.85rem;">Account Capabilities:</span> <span style="color:var(--color-secondary); font-weight:600;">Rent & List Equipment</span></div>
+                </div>
+
+                <h4 style="margin-bottom:0.75rem; font-size:1.1rem;">Change Password</h4>
+                <form id="change-password-form" class="auth-form" style="max-width:100%;">
+                    <label for="old-password">Current Password
+                        <input type="password" id="old-password" required autocomplete="current-password" />
+                    </label>
+                    <label for="new-password">New Password
+                        <input type="password" id="new-password" required autocomplete="new-password" placeholder="At least 8 chars (upper, lower, num, special)" />
+                    </label>
+                    <label for="confirm-new-password">Confirm New Password
+                        <input type="password" id="confirm-new-password" required autocomplete="new-password" />
+                    </label>
+                    <button type="submit" id="save-password-btn" class="btn primary" style="margin-top:0.5rem;">Update Password</button>
+                    <div id="change-pwd-msg" style="margin-top:0.5rem; font-size:0.88rem;"></div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Review Modal -->
+    <div id="review-modal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); z-index:9999; align-items:center; justify-content:center;">
+        <div class="card" style="max-width:440px; width:90%; padding:1.75rem; position:relative;">
+            <button id="close-review-modal" style="position:absolute; top:12px; right:12px; background:none; border:none; color:var(--color-text-muted); font-size:1.4rem; cursor:pointer;">&times;</button>
+            <h3 style="margin-top:0;">Write a Review</h3>
+            <p id="review-prod-title" style="color:var(--color-text-secondary); font-size:0.9rem; margin-bottom:1rem;"></p>
+            <form id="submit-review-form">
+                <input type="hidden" id="review-booking-id" />
+                <input type="hidden" id="review-product-id" />
+                <label for="review-rating">Rating (1 to 5 Stars)
+                    <select id="review-rating" required style="padding:0.6rem;">
+                        <option value="5">★★★★★ (5 - Excellent)</option>
+                        <option value="4">★★★★☆ (4 - Good)</option>
+                        <option value="3">★★★☆☆ (3 - Average)</option>
+                        <option value="2">★★☆☆☆ (2 - Poor)</option>
+                        <option value="1">★☆☆☆☆ (1 - Terrible)</option>
+                    </select>
+                </label>
+                <label for="review-comment" style="margin-top:0.75rem;">Your Feedback
+                    <textarea id="review-comment" rows="3" placeholder="How was the equipment condition and rental experience?" required></textarea>
+                </label>
+                <button type="submit" class="btn primary" style="width:100%; margin-top:1rem;">Submit Review</button>
+                <div id="review-msg" style="margin-top:0.5rem; font-size:0.88rem;"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <h3>RentHub</h3>
+            <p>&copy; 2026 RentHub – Rent Before You Buy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="js/storage.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/toast.js"></script>
+    <script type="module" src="js/navbar.js"></script>
+    <script type="module" src="js/unified-dashboard.js"></script>
+</body>
+</html>

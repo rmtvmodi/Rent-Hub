@@ -56,7 +56,8 @@ export const createRateLimiter = ({
             res.setHeader('Retry-After', retryAfterSec);
             return res.status(429).json({
                 success: false,
-                message
+                message,
+                retryAfter: retryAfterSec
             });
         }
 

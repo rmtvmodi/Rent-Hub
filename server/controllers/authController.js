@@ -32,19 +32,43 @@ export const register = async (req, res, next) => {
             });
         }
 
-        // 3. Password strength requirement
-        if (password.length < 6) {
-            return res.status(400).json({
-                success: false,
-                message: 'Password must be at least 6 characters long.'
-            });
-        }
-
-        // 4. SECURITY RULE: Strictly reject public registration with 'admin' role
+        // 3. SECURITY RULE: Strictly reject public registration with 'admin' role
         if (role && role.toLowerCase() === 'admin') {
             return res.status(403).json({
                 success: false,
                 message: 'Administrator accounts cannot be created via public registration.'
+            });
+        }
+
+        // 4. Strict password policy validation: >= 8 chars, uppercase, lowercase, number, special char
+        if (password.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be at least 8 characters long.'
+            });
+        }
+        if (!/[A-Z]/.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must contain at least one uppercase letter.'
+            });
+        }
+        if (!/[a-z]/.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must contain at least one lowercase letter.'
+            });
+        }
+        if (!/[0-9]/.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must contain at least one number.'
+            });
+        }
+        if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must contain at least one special character.'
             });
         }
 
@@ -230,6 +254,7 @@ export const forgotPassword = async (req, res, next) => {
 
         // Generate unhashed reset token and save hashed version to DB
         const resetToken = user.getResetPasswordToken();
+        const hashedTokenOfThisRequest = user.resetPasswordToken;
         await user.save({ validateBeforeSave: false });
 
         // Construct reset link based on request origin or environment configuration (supports both FRONTEND_URL and CLIENT_URL)
@@ -254,16 +279,47 @@ export const forgotPassword = async (req, res, next) => {
         `;
 
         try {
-            await sendEmail({
+            const mailResult = await sendEmail({
                 email: user.email,
                 subject,
                 message,
                 html
             });
+
+            if (mailResult && mailResult.success === false) {
+                // Email service was unable to dispatch - atomically rollback ONLY this request's token
+                await User.updateOne(
+                    {
+                        _id: user._id,
+                        resetPasswordToken: hashedTokenOfThisRequest
+                    },
+                    {
+                        $unset: {
+                            resetPasswordToken: 1,
+                            resetPasswordExpire: 1
+                        }
+                    }
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message: 'Email delivery service is currently unavailable. Please try again later.'
+                });
+            }
         } catch (mailError) {
-            user.resetPasswordToken = undefined;
-            user.resetPasswordExpire = undefined;
-            await user.save({ validateBeforeSave: false });
+            // Atomically rollback ONLY this request's token without touching newer tokens
+            await User.updateOne(
+                {
+                    _id: user._id,
+                    resetPasswordToken: hashedTokenOfThisRequest
+                },
+                {
+                    $unset: {
+                        resetPasswordToken: 1,
+                        resetPasswordExpire: 1
+                    }
+                }
+            );
 
             return res.status(500).json({
                 success: false,
@@ -383,11 +439,103 @@ export const resetPassword = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    In-app password update for authenticated user
+ * @route   PUT /api/auth/password
+ * @access  Private (Requires valid JWT)
+ */
+export const updatePassword = async (req, res, next) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide both current password and new password.'
+            });
+        }
+
+        // Query user with password hash
+        const user = await User.findById(req.user._id).select('+password');
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User account not found.'
+            });
+        }
+
+        // Verify current password against stored hash
+        const isMatch = await user.matchPassword(currentPassword);
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: 'Incorrect current password.'
+            });
+        }
+
+        // Reject reusing the current password
+        const isSame = await user.matchPassword(newPassword);
+        if (isSame) {
+            return res.status(400).json({
+                success: false,
+                message: 'New password cannot be the same as your current password.'
+            });
+        }
+
+        // Strict password policy validation: >= 8 chars, uppercase, lowercase, number, special char
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be at least 8 characters long.'
+            });
+        }
+        if (!/[A-Z]/.test(newPassword)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must contain at least one uppercase letter.'
+            });
+        }
+        if (!/[a-z]/.test(newPassword)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must contain at least one lowercase letter.'
+            });
+        }
+        if (!/[0-9]/.test(newPassword)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must contain at least one number.'
+            });
+        }
+        if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(newPassword)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must contain at least one special character.'
+            });
+        }
+
+        // Set new password (will be hashed by pre-save hook)
+        user.password = newPassword;
+        // Invalidate prior JWT tokens
+        user.passwordChangedAt = new Date();
+
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: 'Password updated successfully. Existing sessions have been invalidated.'
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export default {
     register,
     login,
     getMe,
     logout,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    updatePassword
 };

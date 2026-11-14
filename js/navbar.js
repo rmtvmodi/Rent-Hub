@@ -1,7 +1,57 @@
 // js/navbar.js
-// Handles responsive navigation toggle and ensures authentication links synchronization
+// Handles responsive navigation toggle, desktop menu sync, and mobile bottom navigation bar
 
-import { syncNavbarAuth } from "./auth.js";
+import { syncNavbarAuth, getCurrentUser } from "./auth.js";
+
+/** Render mobile bottom navigation bar if not already present */
+export function renderMobileBottomNav() {
+    if (typeof document === 'undefined') return;
+    if (document.getElementById('mobile-bottom-nav')) return;
+
+    const pathname = (window.location && window.location.pathname) ? window.location.pathname.split('/').pop() || 'index.html' : 'index.html';
+    const isHome = pathname === 'index.html' || pathname === '';
+    const isBrowse = pathname === 'products.html' || pathname === 'product-details.html';
+    const isDashboard = pathname.includes('dashboard.html');
+    const urlParams = new URLSearchParams(window.location ? window.location.search : '');
+    const tab = urlParams.get('tab');
+
+    const isList = isDashboard && tab === 'add-product';
+    const isWishlist = isDashboard && tab === 'wishlist';
+    const isAccount = isDashboard && !isList && !isWishlist;
+
+    const user = getCurrentUser();
+    const accountUrl = user ? 'dashboard.html' : 'login.html';
+    const listUrl = user ? 'dashboard.html?tab=add-product' : 'login.html?redirect=dashboard.html%3Ftab%3Dadd-product';
+    const wishUrl = user ? 'dashboard.html?tab=wishlist' : 'login.html?redirect=dashboard.html%3Ftab%3Dwishlist';
+
+    const nav = document.createElement('nav');
+    nav.id = 'mobile-bottom-nav';
+    nav.className = 'mobile-bottom-nav';
+    nav.setAttribute('aria-label', 'Mobile Bottom Navigation');
+    nav.innerHTML = `
+        <a href="index.html" class="mobile-bottom-nav-item ${isHome ? 'active' : ''}">
+            <span class="mobile-bottom-nav-icon">🏠</span>
+            <span>Home</span>
+        </a>
+        <a href="products.html" class="mobile-bottom-nav-item ${isBrowse ? 'active' : ''}">
+            <span class="mobile-bottom-nav-icon">🔍</span>
+            <span>Browse</span>
+        </a>
+        <a href="${listUrl}" class="mobile-bottom-nav-item ${isList ? 'active' : ''}">
+            <span class="mobile-bottom-nav-icon" style="color:var(--color-primary); font-weight:bold;">➕</span>
+            <span>List</span>
+        </a>
+        <a href="${wishUrl}" class="mobile-bottom-nav-item ${isWishlist ? 'active' : ''}">
+            <span class="mobile-bottom-nav-icon">🤍</span>
+            <span>Wishlist</span>
+        </a>
+        <a href="${accountUrl}" class="mobile-bottom-nav-item ${isAccount ? 'active' : ''}">
+            <span class="mobile-bottom-nav-icon">👤</span>
+            <span>Account</span>
+        </a>
+    `;
+    document.body.appendChild(nav);
+}
 
 export function setupNavbarToggle() {
     const toggle = document.getElementById('nav-toggle');
@@ -10,6 +60,7 @@ export function setupNavbarToggle() {
 
     // Synchronize navbar authentication links
     syncNavbarAuth();
+    renderMobileBottomNav();
 
     // Initialize aria attributes
     toggle.setAttribute('aria-controls', 'nav-links');

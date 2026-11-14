@@ -12,7 +12,7 @@ import { protect, authorize } from '../middleware/authMiddleware.js';
 const router = express.Router();
 
 router.use(protect);
-router.use(authorize('customer'));
+router.use(authorize('customer', 'owner'));
 
 router.get('/', getMyWishlist);
 router.post('/', addToWishlist);

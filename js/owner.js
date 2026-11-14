@@ -10,6 +10,7 @@ import {
     calculateLateFee, addNotification, getProductReviews
 } from "./storage.js";
 import { api, getStoredToken } from "./api.js";
+import { showToast } from "./toast.js";
 
 let liveOwnerProducts = null;
 let liveOwnerBookings = null;
@@ -507,6 +508,18 @@ async function handleFormSubmit(event) {
 
     // Check if user entered a URL in the URL input without clicking "+ Add URL"
     const urlInput = document.getElementById("prod-image-url");
+/*** Add / Edit Product Submit Handler ***/
+async function handleFormSubmit(event) {
+    event.preventDefault();
+    const title = document.getElementById("prod-title").value.trim();
+    const desc = document.getElementById("prod-desc").value.trim();
+    const category = document.getElementById("prod-category").value.trim();
+    const price = Number(document.getElementById("prod-price").value);
+    const availability = document.getElementById("prod-availability").checked;
+    const msgDiv = document.getElementById("add-product-message");
+
+    // Check if user entered a URL in the URL input without clicking "+ Add URL"
+    const urlInput = document.getElementById("prod-image-url");
     if (urlInput && urlInput.value.trim()) {
         const val = urlInput.value.trim();
         if (!currentProductImages.includes(val)) {
@@ -516,8 +529,27 @@ async function handleFormSubmit(event) {
         }
     }
 
+    // Check if there are pending files in file input that haven't been uploaded yet
+    const fileInput = document.getElementById("prod-file-input");
+    const cameraInput = document.getElementById("prod-camera-input");
+    const pendingFiles = [];
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        pendingFiles.push(...Array.from(fileInput.files));
+    }
+    if (cameraInput && cameraInput.files && cameraInput.files.length > 0) {
+        pendingFiles.push(...Array.from(cameraInput.files));
+    }
+
+    if (pendingFiles.length > 0) {
+        msgDiv.style.color = "var(--color-primary)";
+        msgDiv.textContent = "Uploading product photo(s)...";
+        await uploadFiles(pendingFiles);
+        if (fileInput) fileInput.value = "";
+        if (cameraInput) cameraInput.value = "";
+    }
+
     if (!title || !desc || !category || currentProductImages.length === 0 || isNaN(price) || price <= 0) {
-        msgDiv.textContent = "Please fill all fields and provide at least one product photo.";
+        msgDiv.textContent = "Please fill all required fields and provide at least one product photo.";
         msgDiv.style.color = "#FB7185";
         return;
     }
@@ -527,7 +559,7 @@ async function handleFormSubmit(event) {
     if (!user) return;
 
     msgDiv.style.color = "var(--color-text-secondary)";
-    msgDiv.textContent = "Saving product to backend...";
+    msgDiv.textContent = "Saving product listing...";
 
     if (editMode && editProductId) {
         try {
@@ -542,28 +574,15 @@ async function handleFormSubmit(event) {
             });
             msgDiv.textContent = `Product "${title}" updated successfully!`;
             msgDiv.style.color = "var(--color-secondary)";
+            resetForm();
+            await refreshAll(user);
         } catch (err) {
-            // fallback
-            const existing = getProducts().find(p => p.product_id === editProductId);
-            updateProduct({
-                product_id: editProductId,
-                owner_id: user.user_id,
-                title,
-                description: desc,
-                category,
-                price_per_day: price,
-                availability,
-                image: primaryImage,
-                images: currentProductImages,
-                rating: existing ? existing.rating : 0,
-                approval_status: existing && existing.approval_status ? existing.approval_status : 'approved'
-            });
-            msgDiv.textContent = `Product "${title}" updated in local storage.`;
-            msgDiv.style.color = "var(--color-secondary)";
+            msgDiv.textContent = err.message || "Failed to update product. Please check your connection.";
+            msgDiv.style.color = "#FB7185";
         }
     } else {
         try {
-            const res = await api.post('/products', {
+            await api.post('/products', {
                 title,
                 description: desc,
                 category,
@@ -574,38 +593,15 @@ async function handleFormSubmit(event) {
             });
             msgDiv.textContent = `Product "${title}" submitted! It is now pending administrative approval.`;
             msgDiv.style.color = "var(--color-secondary)";
+            showToast(`Product "${title}" created and pending approval!`, "success");
+            resetForm();
+            await refreshAll(user);
         } catch (err) {
-            // fallback
-            addProduct({
-                product_id: genId('product'),
-                owner_id: user.user_id,
-                title,
-                description: desc,
-                category,
-                price_per_day: price,
-                availability,
-                image: primaryImage,
-                images: currentProductImages,
-                rating: 0,
-                approval_status: 'pending'
-            });
-            msgDiv.textContent = `Product "${title}" added to local storage.`;
-            msgDiv.style.color = "var(--color-secondary)";
+            msgDiv.textContent = err.message || "Failed to create product listing. Please check your connection.";
+            msgDiv.style.color = "#FB7185";
+            showToast(err.message || "Failed to create product listing", "error");
         }
     }
-                price_per_day: price,
-                availability,
-                image,
-                rating: 0,
-                approval_status: 'pending'
-            });
-            msgDiv.textContent = `Product "${title}" added to local storage.`;
-            msgDiv.style.color = "var(--color-secondary)";
-        }
-    }
-
-    resetForm();
-    await refreshAll(user);
 }
 
 /*** Action Listeners ***/
@@ -659,8 +655,9 @@ async function handleActionClicks(e) {
         if (confirm(`Are you sure you want to delete "${title}"? This cannot be undone.`)) {
             try {
                 await api.delete(`/products/${pid}`);
+                showToast(`Product "${title}" removed successfully.`, 'success');
             } catch (err) {
-                deleteProduct(pid);
+                showToast(err.message || 'Failed to delete product.', 'error');
             }
             await refreshAll(user);
         }
@@ -674,10 +671,10 @@ async function handleActionClicks(e) {
 
         const newAvail = !product.availability;
         try {
-            await api.put(`/products/${pid}`, { availability: newAvail });
+            await api.patch(`/products/${pid}/availability`, { availability: newAvail });
+            showToast(`Product availability updated to ${newAvail ? 'Available' : 'Unavailable'}.`, 'success');
         } catch (err) {
-            product.availability = newAvail;
-            updateProduct(product);
+            showToast(err.message || 'Failed to update availability.', 'error');
         }
         await refreshAll(user);
     }
@@ -686,14 +683,9 @@ async function handleActionClicks(e) {
     else if (btn.classList.contains('accept-btn')) {
         try {
             await api.patch(`/bookings/${pid}/accept`);
-            alert(`Booking accepted! Customer has been notified to proceed with payment.`);
+            showToast('Booking accepted! Customer has been notified to pay.', 'success');
         } catch (err) {
-            const booking = getBookings().find(b => b.booking_id === pid);
-            if (booking) {
-                booking.status = 'Accepted';
-                updateBooking(booking);
-            }
-            alert(`Booking accepted in local storage.`);
+            showToast(err.message || 'Failed to accept booking request.', 'error');
         }
         await refreshAll(user);
     }
@@ -703,12 +695,9 @@ async function handleActionClicks(e) {
         if (!confirm(`Reject this booking request?`)) return;
         try {
             await api.patch(`/bookings/${pid}/reject`);
+            showToast('Booking request rejected.', 'info');
         } catch (err) {
-            const booking = getBookings().find(b => b.booking_id === pid);
-            if (booking) {
-                booking.status = 'Rejected';
-                updateBooking(booking);
-            }
+            showToast(err.message || 'Failed to reject booking request.', 'error');
         }
         await refreshAll(user);
     }
@@ -717,14 +706,9 @@ async function handleActionClicks(e) {
     else if (btn.classList.contains('handover-btn')) {
         try {
             await api.patch(`/bookings/${pid}/handover`);
-            alert(`Equipment handover confirmed! Rental is now Active.`);
+            showToast('Equipment handover confirmed! Rental is now Active.', 'success');
         } catch (err) {
-            const booking = getBookings().find(b => b.booking_id === pid);
-            if (booking) {
-                booking.status = 'Active Rental';
-                updateBooking(booking);
-            }
-            alert(`Equipment marked as handed over in local storage.`);
+            showToast(err.message || 'Failed to confirm equipment handover.', 'error');
         }
         await refreshAll(user);
     }
@@ -735,17 +719,9 @@ async function handleActionClicks(e) {
         try {
             const res = await api.patch(`/bookings/${pid}/return`);
             const fee = res.booking ? res.booking.late_fee : 0;
-            alert(`Return confirmed!${fee > 0 ? ` Late fee of ₹${fee} recorded.` : ' No late fee assessed.'}`);
+            showToast(`Return confirmed!${fee > 0 ? ` Late fee of ₹${fee} assessed.` : ' Rental completed.'}`, 'success');
         } catch (err) {
-            const booking = getBookings().find(b => b.booking_id === pid);
-            if (booking) {
-                const feeInfo = calculateLateFee(booking);
-                booking.status = 'Completed';
-                booking.late_fee = feeInfo.lateFee;
-                booking.return_date = new Date().toISOString();
-                updateBooking(booking);
-            }
-            alert(`Return recorded in local storage.`);
+            showToast(err.message || 'Failed to confirm product return.', 'error');
         }
         await refreshAll(user);
     }
