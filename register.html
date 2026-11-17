@@ -37,12 +37,12 @@
                 <label for="reg-confirm">Confirm Password
                     <input type="password" id="reg-confirm" placeholder="••••••••" required />
                 </label>
-                <fieldset style="margin-top:0.5rem; border:1px solid var(--color-border); padding:0.75rem 1rem; border-radius:var(--radius);">
+                <fieldset style="margin-top:0.5rem; border:1px solid var(--color-border); padding:0.75rem 1rem; border-radius:var(--radius); display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center;">
                     <legend style="padding:0 0.5rem; font-size:0.85rem; color:var(--color-text-secondary);">Select Account Type</legend>
-                    <label style="display:inline-flex; flex-direction:row; align-items:center; gap:0.5rem; cursor:pointer;">
+                    <label style="display:inline-flex; flex-direction:row; align-items:center; gap:0.5rem; cursor:pointer; margin:0;">
                         <input type="radio" name="role" value="customer" checked required /> Customer (Rent items)
                     </label>
-                    <label style="display:inline-flex; flex-direction:row; align-items:center; gap:0.5rem; margin-left:1.5rem; cursor:pointer;">
+                    <label style="display:inline-flex; flex-direction:row; align-items:center; gap:0.5rem; cursor:pointer; margin:0;">
                         <input type="radio" name="role" value="owner" /> Owner (Lend items)
                     </label>
                 </fieldset>

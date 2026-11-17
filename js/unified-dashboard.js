@@ -215,13 +215,13 @@ function renderListings() {
         const avail = p.availability;
         const approval = p.approval_status || 'approved';
 
-        let approvalBadge = `<span class="badge" style="background:rgba(45,212,191,0.18); color:var(--color-secondary);">Approved</span>`;
-        if (approval === 'pending') approvalBadge = `<span class="badge" style="background:rgba(251,191,36,0.18); color:#FBBF24;">Pending Approval</span>`;
-        if (approval === 'rejected') approvalBadge = `<span class="badge rejected">Rejected</span>`;
-
-        const availBadge = avail
-            ? `<span style="color:var(--color-secondary); font-size:0.82rem; font-weight:600;">● Available</span>`
-            : `<span style="color:#FB7185; font-size:0.82rem; font-weight:600;">○ Unavailable</span>`;
+        // Listing status: active/available or paused, with suspension indication if moderated by admin
+        let statusBadge = avail
+            ? `<span class="badge accepted">● Active & Available</span>`
+            : `<span class="badge" style="background:rgba(255,255,255,0.08); color:var(--color-text-muted);">○ Paused</span>`;
+        if (p.approval_status === 'rejected') {
+            statusBadge = `<span class="badge rejected">Suspended by Admin</span>`;
+        }
 
         // Calculate performance from incoming requests
         const rentals = liveOwnerRequests.filter(b => (b.product_id === id || (b.product && (b.product._id === id || b.product.product_id === id))) && ['Paid', 'Active Rental', 'Completed'].includes(b.status));
@@ -243,10 +243,7 @@ function renderListings() {
                 <td style="font-weight:700; color:var(--color-secondary);">₹${price} /day</td>
                 <td style="font-size:0.85rem;">${timesRented} rental${timesRented === 1 ? '' : 's'} (₹${rev.toLocaleString('en-IN')})</td>
                 <td>
-                    <div style="display:flex; flex-direction:column; gap:0.2rem;">
-                        <div>${approvalBadge}</div>
-                        <div>${availBadge}</div>
-                    </div>
+                    ${statusBadge}
                 </td>
                 <td style="text-align:right;">
                     <div style="display:inline-flex; gap:0.4rem;">
@@ -557,11 +554,17 @@ async function handleFormSubmit(e) {
     const user = getCurrentUser();
     if (!user) return;
 
-    msgDiv.style.color = 'var(--color-text-secondary)';
-    msgDiv.textContent = editMode ? 'Updating product changes...' : 'Submitting product listing...';
+    const submitBtn = document.getElementById('submit-prod-btn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = editMode ? 'Saving Changes...' : 'Publishing Listing...';
+    }
 
-    if (editMode && editProductId) {
-        try {
+    msgDiv.style.color = 'var(--color-text-secondary)';
+    msgDiv.textContent = editMode ? 'Updating product changes...' : 'Publishing product to marketplace...';
+
+    try {
+        if (editMode && editProductId) {
             await api.put(`/products/${editProductId}`, {
                 title,
                 description: desc,
@@ -575,13 +578,7 @@ async function handleFormSubmit(e) {
             resetForm();
             await loadDashboardData(user);
             switchTab('listings');
-        } catch (err) {
-            msgDiv.textContent = err.message || 'Failed to update product.';
-            msgDiv.style.color = '#FB7185';
-            showToast(err.message || 'Update failed', 'error');
-        }
-    } else {
-        try {
+        } else {
             await api.post('/products', {
                 title,
                 description: desc,
@@ -591,14 +588,19 @@ async function handleFormSubmit(e) {
                 image: primaryImage,
                 images: currentProductImages
             });
-            showToast(`Listing created! It is now pending administrative approval.`, 'success');
+            showToast(`Listing created! Your item is now live in the marketplace.`, 'success');
             resetForm();
             await loadDashboardData(user);
             switchTab('listings');
-        } catch (err) {
-            msgDiv.textContent = err.message || 'Failed to create product listing.';
-            msgDiv.style.color = '#FB7185';
-            showToast(err.message || 'Creation failed', 'error');
+        }
+    } catch (err) {
+        msgDiv.textContent = err.message || (editMode ? 'Failed to update product.' : 'Failed to publish product listing.');
+        msgDiv.style.color = '#FB7185';
+        showToast(err.message || 'Operation failed', 'error');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = editMode ? 'Save Changes' : 'Submit Listing';
         }
     }
 }

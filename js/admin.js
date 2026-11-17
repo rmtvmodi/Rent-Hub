@@ -262,13 +262,15 @@ function renderProducts() {
     let prods = liveAdminProducts || getProducts();
 
     const searchVal = document.getElementById("product-search")?.value.trim().toLowerCase() || "";
-    const approvalVal = document.getElementById("product-approval-filter")?.value || "";
+    const availVal = document.getElementById("product-availability-filter")?.value || "";
 
     if (searchVal) {
         prods = prods.filter(p => p.title.toLowerCase().includes(searchVal) || p.category.toLowerCase().includes(searchVal));
     }
-    if (approvalVal) {
-        prods = prods.filter(p => (p.approval_status || 'approved') === approvalVal);
+    if (availVal === 'available') {
+        prods = prods.filter(p => p.availability && p.approval_status !== 'rejected');
+    } else if (availVal === 'unavailable') {
+        prods = prods.filter(p => !p.availability || p.approval_status === 'rejected');
     }
 
     if (prods.length === 0) {
@@ -277,15 +279,14 @@ function renderProducts() {
     }
 
     let html = `
-        <table style="width:100%; border-collapse:collapse; min-width:750px;">
+        <table style="width:100%; border-collapse:collapse; min-width:700px;">
             <thead>
                 <tr style="border-bottom:1px solid var(--color-border); text-align:left; font-size:0.85rem; color:var(--color-text-muted);">
                     <th style="padding:0.75rem 0.5rem;">Product</th>
                     <th style="padding:0.75rem 0.5rem;">Owner</th>
                     <th style="padding:0.75rem 0.5rem;">Category</th>
                     <th style="padding:0.75rem 0.5rem;">Daily Rate</th>
-                    <th style="padding:0.75rem 0.5rem;">Available</th>
-                    <th style="padding:0.75rem 0.5rem;">Approval Status</th>
+                    <th style="padding:0.75rem 0.5rem;">Marketplace Status</th>
                     <th style="padding:0.75rem 0.5rem; text-align:right;">Actions</th>
                 </tr>
             </thead>
@@ -294,8 +295,14 @@ function renderProducts() {
 
     prods.forEach(p => {
         const pid = p.product_id || p._id;
-        const currentApproval = p.approval_status || 'approved';
         const ownerName = p.ownerName || 'Lender';
+        const isSuspended = p.approval_status === 'rejected';
+
+        let statusBadge = isSuspended
+            ? `<span class="badge rejected">Suspended by Admin</span>`
+            : (p.availability
+                ? `<span class="badge accepted">● Active & Available</span>`
+                : `<span class="badge" style="background:rgba(255,255,255,0.08); color:var(--color-text-muted);">○ Unavailable</span>`);
 
         html += `
             <tr style="border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.9rem;">
@@ -312,18 +319,15 @@ function renderProducts() {
                 <td style="padding:0.75rem 0.5rem;">${p.category}</td>
                 <td style="padding:0.75rem 0.5rem; font-weight:600; color:var(--color-secondary);">₹${p.price_per_day}</td>
                 <td style="padding:0.75rem 0.5rem;">
-                    ${p.availability ? '<span style="color:var(--color-secondary); font-weight:600;">Yes</span>' : '<span style="color:#FB7185; font-weight:600;">No</span>'}
-                </td>
-                <td style="padding:0.75rem 0.5rem;">
-                    <select class="approval-select" data-id="${pid}" style="padding:0.3rem 0.5rem; font-size:0.8rem; border-radius:var(--radius-sm); background:var(--color-surface); color:var(--color-text-primary); border:1px solid var(--color-border);">
-                        <option value="approved" ${currentApproval === 'approved' ? 'selected' : ''}>Approved</option>
-                        <option value="pending" ${currentApproval === 'pending' ? 'selected' : ''}>Pending</option>
-                        <option value="rejected" ${currentApproval === 'rejected' ? 'selected' : ''}>Rejected</option>
-                    </select>
+                    ${statusBadge}
                 </td>
                 <td style="padding:0.75rem 0.5rem; text-align:right;">
-                    <div style="display:inline-flex; gap:0.4rem;">
+                    <div style="display:inline-flex; gap:0.4rem; flex-wrap:wrap; justify-content:flex-end;">
                         <button class="btn primary edit-prod-btn" data-id="${pid}" style="font-size:0.8rem; padding:0.35rem 0.65rem;">Edit</button>
+                        ${isSuspended
+                            ? `<button class="btn reinstate-prod-btn" data-id="${pid}" style="font-size:0.8rem; padding:0.35rem 0.65rem; color:var(--color-secondary); border-color:var(--color-secondary);" title="Reinstate listing">Reinstate</button>`
+                            : `<button class="btn suspend-prod-btn" data-id="${pid}" style="font-size:0.8rem; padding:0.35rem 0.65rem; color:#FBBF24; border-color:rgba(251,191,36,0.3);" title="Hide listing from marketplace">Suspend</button>`
+                        }
                         <button class="btn delete-prod-btn" data-id="${pid}" style="font-size:0.8rem; padding:0.35rem 0.65rem; color:#FB7185; border-color:rgba(251,113,133,0.3);">Delete</button>
                     </div>
                 </td>
@@ -344,7 +348,7 @@ async function handleProductForm(e) {
     const availability = document.getElementById('prod-availability').checked;
     const image = document.getElementById('prod-image').value.trim();
     const ownerId = document.getElementById('prod-owner').value;
-    const approval = document.getElementById('prod-approval').value;
+    const approval = document.getElementById('prod-approval')?.value || 'approved';
     const msg = document.getElementById('add-product-message');
 
     if (!title || !desc || !category || !image || !ownerId || isNaN(price) || price <= 0) {
@@ -630,7 +634,8 @@ function setupEventListeners() {
             document.getElementById('prod-availability').checked = prod.availability;
             document.getElementById('prod-image').value = prod.image;
             document.getElementById('prod-owner').value = prod.owner_id;
-            document.getElementById('prod-approval').value = prod.approval_status || 'approved';
+            const approvalEl = document.getElementById('prod-approval');
+            if (approvalEl) approvalEl.value = prod.approval_status || 'approved';
 
             productEditMode = true;
             editingProductId = pid;
@@ -655,6 +660,26 @@ function setupEventListeners() {
                 }
                 await refreshAllAdmin();
             }
+        } else if (e.target.closest('.suspend-prod-btn')) {
+            const btn = e.target.closest('.suspend-prod-btn');
+            const pid = btn.dataset.id;
+            if (confirm(`Suspend product #${pid}? This listing will be hidden from the public marketplace.`)) {
+                try {
+                    await api.patch(`/products/${pid}/approval`, { approval_status: 'rejected' });
+                } catch (err) {
+                    console.error(err);
+                }
+                await refreshAllAdmin();
+            }
+        } else if (e.target.closest('.reinstate-prod-btn')) {
+            const btn = e.target.closest('.reinstate-prod-btn');
+            const pid = btn.dataset.id;
+            try {
+                await api.patch(`/products/${pid}/approval`, { approval_status: 'approved' });
+            } catch (err) {
+                console.error(err);
+            }
+            await refreshAllAdmin();
         }
     });
 
@@ -700,7 +725,7 @@ function setupEventListeners() {
     document.getElementById('user-role-filter')?.addEventListener('change', renderUsers);
 
     document.getElementById('product-search')?.addEventListener('input', renderProducts);
-    document.getElementById('product-approval-filter')?.addEventListener('change', renderProducts);
+    document.getElementById('product-availability-filter')?.addEventListener('change', renderProducts);
 
     document.getElementById('booking-search')?.addEventListener('input', renderBookings);
     document.getElementById('booking-status-filter')?.addEventListener('change', renderBookings);

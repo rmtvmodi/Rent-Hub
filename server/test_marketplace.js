@@ -74,7 +74,7 @@ const createMockRes = () => {
     // -------------------------------------------------------------------------
     // 1. PRODUCT MANAGEMENT & APPROVAL RULES
     // -------------------------------------------------------------------------
-    await runTest('Product Creation: Owner-created products default to approval_status: pending', async () => {
+    await runTest('Product Creation: Owner-created products default to approval_status: approved for immediate marketplace availability', async () => {
         const ownerId = new mongoose.Types.ObjectId();
         const req = {
             user: { _id: ownerId, role: 'owner' },
@@ -98,7 +98,7 @@ const createMockRes = () => {
             image: req.body.image
         });
 
-        assert.strictEqual(product.approval_status, 'pending', 'Must default to pending approval');
+        assert.strictEqual(product.approval_status, 'approved', 'Must default to approved for immediate availability');
         assert.strictEqual(product.availability, true, 'Default availability is true');
     });
 

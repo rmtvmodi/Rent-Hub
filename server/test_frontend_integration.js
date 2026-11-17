@@ -94,7 +94,7 @@ const createMockRes = () => {
         assert(res.body.message.includes('Administrator accounts cannot be created via public registration'));
     });
 
-    await runTest('Auth Validation: Rejects short password (<6 chars) and missing fields with 400', async () => {
+    await runTest('Auth Validation: Rejects short password (<8 chars) and missing fields with 400', async () => {
         const req = {
             body: {
                 name: 'Jane Doe',
@@ -108,7 +108,7 @@ const createMockRes = () => {
         await register(req, res, () => {});
 
         assert.strictEqual(res.statusCode, 400);
-        assert(res.body.message.includes('Password must be at least 6 characters long'));
+        assert(res.body.message.includes('Password must be at least 8 characters long'));
     });
 
     await runTest('Auth Profile Restoration: getMe returns sanitized user without password hash', async () => {
@@ -131,7 +131,7 @@ const createMockRes = () => {
     // -------------------------------------------------------------------------
     // 3. PRODUCT CATALOG, APPROVAL & MODERATION
     // -------------------------------------------------------------------------
-    await runTest('Product Catalog: Owner listings default to pending approval status', () => {
+    await runTest('Product Catalog: Owner listings default to approved status for immediate marketplace availability', () => {
         const ownerId = new mongoose.Types.ObjectId();
         const p = new Product({
             owner: ownerId,
@@ -142,7 +142,7 @@ const createMockRes = () => {
             image: 'https://example.com/sony.jpg'
         });
 
-        assert.strictEqual(p.approval_status, 'pending', 'Must default to pending');
+        assert.strictEqual(p.approval_status, 'approved', 'Must default to approved for immediate availability');
         assert.strictEqual(p.rating, 0, 'Initial rating must be 0 (no default 5)');
         assert.strictEqual(p.numReviews, 0, 'Initial review count must be 0');
     });

@@ -297,15 +297,11 @@ function renderProductPerformance(user) {
             return sum;
         }, 0);
 
-        const approvalBadge = p.approval_status === "rejected"
-            ? `<span class="badge rejected" style="font-size:0.75rem;">Rejected by Admin</span>`
-            : p.approval_status === "pending"
-            ? `<span class="badge" style="background:rgba(251,191,36,0.15); color:#FBBF24; font-size:0.75rem;">Pending Approval</span>`
-            : `<span class="badge approved" style="font-size:0.75rem;">Approved</span>`;
-
-        const availBadge = p.availability
-            ? `<span style="color:var(--color-secondary); font-size:0.85rem; font-weight:600;">● Available</span>`
-            : `<span style="color:#FB7185; font-size:0.85rem; font-weight:600;">○ Unavailable</span>`;
+        let statusBadge = p.approval_status === "rejected"
+            ? `<span class="badge rejected" style="font-size:0.75rem;">Suspended by Admin</span>`
+            : (p.availability
+                ? `<span class="badge accepted" style="font-size:0.75rem;">● Active & Available</span>`
+                : `<span class="badge" style="background:rgba(255,255,255,0.08); color:var(--color-text-muted); font-size:0.75rem;">○ Unavailable</span>`);
 
         html += `
             <tr style="border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.9rem;">
@@ -323,10 +319,7 @@ function renderProductPerformance(user) {
                 <td style="padding:0.75rem 0.5rem;">${timesRented} rental${timesRented === 1 ? '' : 's'}</td>
                 <td style="padding:0.75rem 0.5rem; font-weight:600;">₹${revenue.toLocaleString('en-IN')}</td>
                 <td style="padding:0.75rem 0.5rem;">
-                    <div style="display:flex; flex-direction:column; gap:0.25rem;">
-                        <div>${approvalBadge}</div>
-                        <div>${availBadge}</div>
-                    </div>
+                    ${statusBadge}
                 </td>
                 <td style="padding:0.75rem 0.5rem; text-align:right;">
                     <div style="display:inline-flex; gap:0.4rem;">
@@ -476,7 +469,7 @@ function renderOwnerProducts(user) {
             <img src="${p.image}" alt="${p.title}" style="width:100%; height:160px; object-fit:cover; border-radius:0.4rem;" />
             <div style="margin-top:0.75rem; display:flex; justify-content:space-between; align-items:flex-start;">
                 <h4 style="margin:0; font-size:1.1rem; color:var(--color-text-primary);">${p.title}</h4>
-                <span class="badge ${p.approval_status === 'rejected' ? 'rejected' : (p.approval_status === 'pending' ? 'due-soon' : 'approved')}" style="font-size:0.75rem;">${p.approval_status || 'approved'}</span>
+                <span class="badge ${p.approval_status === 'rejected' ? 'rejected' : 'approved'}" style="font-size:0.75rem;">${p.approval_status === 'rejected' ? 'Suspended by Admin' : 'Active'}</span>
             </div>
             <p style="margin:0.25rem 0; font-size:0.85rem; color:var(--color-text-secondary); line-height:1.4;">${p.description}</p>
             <p style="margin:0.25rem 0; font-size:0.85rem; color:var(--color-text-muted);">Category: <strong>${p.category}</strong></p>
@@ -591,9 +584,9 @@ async function handleFormSubmit(event) {
                 image: primaryImage,
                 images: currentProductImages
             });
-            msgDiv.textContent = `Product "${title}" submitted! It is now pending administrative approval.`;
+            msgDiv.textContent = `Product "${title}" created and published to marketplace!`;
             msgDiv.style.color = "var(--color-secondary)";
-            showToast(`Product "${title}" created and pending approval!`, "success");
+            showToast(`Product "${title}" created and live in marketplace!`, "success");
             resetForm();
             await refreshAll(user);
         } catch (err) {

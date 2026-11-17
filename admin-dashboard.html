@@ -41,7 +41,7 @@
                 <p id="total-products">0</p>
             </div>
             <div class="summary-card">
-                <h3>Approved Products</h3>
+                <h3>Active Marketplace Products</h3>
                 <p id="total-approved" style="color:var(--color-secondary);">0</p>
             </div>
             <div class="summary-card">
@@ -82,34 +82,33 @@
         <section id="product-management" class="card" style="margin-bottom:2.5rem;">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
                 <div>
-                    <h3 style="margin:0; font-size:1.3rem;">Product Inventory Moderation</h3>
-                    <p style="margin:0.25rem 0 0; font-size:0.85rem; color:var(--color-text-muted);">Moderate product listings with Approval / Rejection controls, inspect rates, and edit details.</p>
+                    <h3 style="margin:0; font-size:1.3rem;">Product Inventory & Moderation</h3>
+                    <p style="margin:0.25rem 0 0; font-size:0.85rem; color:var(--color-text-muted);">Oversee published marketplace equipment, edit details, or remove inappropriate listings.</p>
                 </div>
                 <div class="table-toolbar">
                     <input type="text" id="product-search" placeholder="Search product title…" style="padding:0.4rem 0.75rem; font-size:0.85rem;" />
-                    <select id="product-approval-filter" style="padding:0.4rem 0.75rem; font-size:0.85rem;">
-                        <option value="">All Approval Statuses</option>
-                        <option value="approved">Approved</option>
-                        <option value="pending">Pending</option>
-                        <option value="rejected">Rejected</option>
+                    <select id="product-availability-filter" style="padding:0.4rem 0.75rem; font-size:0.85rem;">
+                        <option value="">All Availability</option>
+                        <option value="available">Available for Rent</option>
+                        <option value="unavailable">Unavailable / Rented</option>
                     </select>
                 </div>
             </div>
 
             <!-- Add / Edit Product Form for Admin -->
-            <section id="add-product-section" style="background:var(--color-surface); padding:1.25rem; border-radius:var(--radius); border:1px solid var(--color-border); margin-bottom:1.5rem; max-width:650px;">
+            <section id="add-product-section" style="background:var(--color-surface); padding:1.25rem; border-radius:var(--radius); border:1px solid var(--color-border); margin-bottom:1.5rem; max-width:650px; width:100%; box-sizing:border-box;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
                     <h4 id="admin-prod-form-heading" style="margin:0; color:var(--color-secondary);">Add / Edit Product (Admin Mode)</h4>
                     <button id="admin-cancel-edit-btn" class="btn" style="display:none; padding:0.25rem 0.6rem; font-size:0.8rem;">Cancel</button>
                 </div>
-                <form id="add-product-form" class="auth-form" style="max-width:100%;">
+                <form id="add-product-form" class="auth-form" style="max-width:100%; width:100%; box-sizing:border-box;">
                     <label for="prod-title">Title
                         <input type="text" id="prod-title" required />
                     </label>
                     <label for="prod-desc">Description
                         <textarea id="prod-desc" rows="3" required></textarea>
                     </label>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div class="form-row-2col">
                         <label for="prod-category">Category
                             <select id="prod-category" required>
                                 <option value="Electronics">Electronics</option>
@@ -125,16 +124,9 @@
                             <input type="number" id="prod-price" min="1" required />
                         </label>
                     </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div class="form-row-2col">
                         <label for="prod-owner">Assigned Owner
                             <select id="prod-owner" required></select>
-                        </label>
-                        <label for="prod-approval">Approval Status
-                            <select id="prod-approval" required>
-                                <option value="approved">Approved</option>
-                                <option value="pending">Pending</option>
-                                <option value="rejected">Rejected</option>
-                            </select>
                         </label>
                     </div>
                     <label for="prod-image">Image URL

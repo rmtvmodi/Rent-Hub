@@ -34,10 +34,10 @@ const productDoc = new Product({
     price_per_day: 850,
     image: 'https://example.com/camera.jpg'
 });
-assert.strictEqual(productDoc.approval_status, 'pending', 'Rule: approval_status defaults to pending');
+assert.strictEqual(productDoc.approval_status, 'approved', 'Rule: approval_status defaults to approved');
 assert.strictEqual(productDoc.availability, true);
 assert.strictEqual(productDoc.product_id, productDoc._id.toString(), 'Product virtual product_id works');
-console.log('✓ [PASS] Product Model & Defaults verified (pending approval by default)');
+console.log('✓ [PASS] Product Model & Defaults verified (approved and published immediately by default)');
 
 // 3. Booking Model
 const start = new Date('2026-11-10');

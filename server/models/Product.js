@@ -41,7 +41,7 @@ const productSchema = new mongoose.Schema({
     approval_status: {
         type: String,
         enum: ['approved', 'pending', 'rejected'],
-        default: 'pending' // Rule: New owner-created products must default to 'pending'
+        default: 'approved' // Immediate marketplace visibility; admin retains moderation/rejection capability
     },
     image: {
         type: String,

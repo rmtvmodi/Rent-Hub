@@ -28,8 +28,8 @@ export const getProducts = async (req, res, next) => {
             limit = 12
         } = req.query;
 
-        // Base query: Only show approved products in public marketplace
-        const query = { approval_status: 'approved' };
+        // Base query: Products visible in public marketplace (all active products except admin-moderated/rejected)
+        const query = { approval_status: { $ne: 'rejected' } };
 
         // 1. Full-text search / keyword matching
         const searchTerm = (search || keyword || '').trim();
@@ -128,14 +128,14 @@ export const getProductById = async (req, res, next) => {
             });
         }
 
-        // Privacy check: If product is not approved, only owner or admin can view details
-        if (product.approval_status !== 'approved') {
+        // Visibility check: If product was rejected/suspended by admin, only owner or admin can view details
+        if (product.approval_status === 'rejected') {
             const isOwner = req.user && req.user._id.toString() === product.owner._id.toString();
             const isAdmin = req.user && req.user.role === 'admin';
             if (!isOwner && !isAdmin) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Product listing is currently pending administrative approval.'
+                    message: 'Product listing has been removed or suspended by administration.'
                 });
             }
         }
@@ -269,11 +269,11 @@ export const createProduct = async (req, res, next) => {
             });
         }
 
-        // Security rule: New owner products default to 'pending' approval
-        // Admins can immediately approve
-        const initialApproval = req.user.role === 'admin' && req.body.approval_status
+        // Phase 4: Product listings are immediately approved and published to marketplace
+        // Admins can optionally override approval_status if explicitly provided
+        const initialApproval = (req.user.role === 'admin' && req.body.approval_status)
             ? req.body.approval_status
-            : 'pending';
+            : 'approved';
 
         const product = await Product.create({
             owner: req.user._id, // Enforce logged-in user as owner (prevents mass assignment)
@@ -289,9 +289,7 @@ export const createProduct = async (req, res, next) => {
 
         res.status(201).json({
             success: true,
-            message: initialApproval === 'approved'
-                ? 'Product created and published.'
-                : 'Product submitted successfully and is pending administrative approval.',
+            message: 'Product created and published to marketplace.',
             product
         });
     } catch (error) {

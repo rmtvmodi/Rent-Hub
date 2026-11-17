@@ -152,7 +152,7 @@ async function runSecurityAndConcurrencyTests() {
         // --- 2. PRODUCT MANAGEMENT & ISOLATION ---
         console.log('\n--- 2. PRODUCT PERMISSIONS & DATA ISOLATION ---');
 
-        await test('Owner creates product with default approval_status: pending', async () => {
+        await test('Owner creates product with default approval_status: approved and immediate visibility', async () => {
             const req = {
                 user: ownerUser,
                 body: {
@@ -166,16 +166,16 @@ async function runSecurityAndConcurrencyTests() {
             const res = mockResponse();
             await createProduct(req, res, handleNext(res));
             assert.strictEqual(res.statusCode, 201, `Status must be 201, got ${res.statusCode}: ${JSON.stringify(res.body)}`);
-            assert.strictEqual(res.body.product.approval_status, 'pending');
+            assert.strictEqual(res.body.product.approval_status, 'approved');
             testProduct = res.body.product;
         });
 
-        await test('Pending product is NOT visible in public marketplace', async () => {
+        await test('Newly created product is immediately visible in public marketplace', async () => {
             const req = { query: { search: `Audit Sony A7 IV Camera ${runId}` } };
             const res = mockResponse();
             await getProducts(req, res, handleNext(res));
             assert.strictEqual(res.statusCode, 200);
-            assert.strictEqual(res.body.products.length, 0, 'Pending product must be hidden');
+            assert.strictEqual(res.body.products.length, 1, 'Approved product must be visible');
         });
 
         await test('Cross-tenant security: Owner 2 cannot edit Owner 1 product (403)', async () => {
@@ -190,7 +190,27 @@ async function runSecurityAndConcurrencyTests() {
             assert.strictEqual(res.body.success, false);
         });
 
-        await test('Admin approves pending product', async () => {
+        await test('Admin moderation: Admin suspends inappropriate product (rejected)', async () => {
+            const req = {
+                user: adminUser,
+                params: { id: testProduct._id.toString() },
+                body: { approval_status: 'rejected' }
+            };
+            const res = mockResponse();
+            await moderateProductApproval(req, res, handleNext(res));
+            assert.strictEqual(res.statusCode, 200);
+            assert.strictEqual(res.body.product.approval_status, 'rejected');
+        });
+
+        await test('Suspended product is NOT visible in public marketplace', async () => {
+            const req = { query: { search: `Audit Sony A7 IV Camera ${runId}` } };
+            const res = mockResponse();
+            await getProducts(req, res, handleNext(res));
+            assert.strictEqual(res.statusCode, 200);
+            assert.strictEqual(res.body.products.length, 0, 'Suspended product must be hidden');
+        });
+
+        await test('Admin reinstates suspended product (approved)', async () => {
             const req = {
                 user: adminUser,
                 params: { id: testProduct._id.toString() },
@@ -202,7 +222,7 @@ async function runSecurityAndConcurrencyTests() {
             assert.strictEqual(res.body.product.approval_status, 'approved');
         });
 
-        await test('Approved product is now visible in public marketplace', async () => {
+        await test('Reinstated product is visible again in public marketplace', async () => {
             const req = { query: { search: `Audit Sony A7 IV Camera ${runId}` } };
             const res = mockResponse();
             await getProducts(req, res, handleNext(res));

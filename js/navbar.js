@@ -114,6 +114,17 @@ export function setupNavbarToggle() {
         };
         document.addEventListener('click', document._navbarOutsideHandler);
     }
+
+    // Reset menu on resize to desktop width
+    if (!window._navbarResizeHandler) {
+        window._navbarResizeHandler = () => {
+            if (window.innerWidth > 768 && navLinks.classList.contains('active')) {
+                navLinks.classList.remove('active');
+                toggle.setAttribute('aria-expanded', 'false');
+            }
+        };
+        window.addEventListener('resize', window._navbarResizeHandler);
+    }
 }
 
 // Auto-initialize on ready
