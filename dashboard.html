@@ -147,7 +147,7 @@
                 <h3 style="margin:0; font-size:1.25rem;">My Bookings & Rental History</h3>
                 <span style="font-size:0.85rem; color:var(--color-text-muted);">Track timeline, pay, and request returns</span>
             </div>
-            <div class="dashboard-table-container">
+            <div class="dashboard-table-container desktop-only-table">
                 <table class="dashboard-table">
                     <thead>
                         <tr>
@@ -164,6 +164,9 @@
                     </tbody>
                 </table>
             </div>
+            <div id="rentals-cards" class="mobile-only-cards" aria-label="My Rentals Cards">
+                <div style="text-align:center; padding:2rem; color:var(--color-text-muted);">Loading your rentals...</div>
+            </div>
         </section>
 
         <!-- TAB 2: My Equipment Listings (Lender View) -->
@@ -175,7 +178,7 @@
                 </div>
                 <button class="btn primary" onclick="document.querySelector('[data-tab=add-product]').click()">+ Add Listing</button>
             </div>
-            <div class="dashboard-table-container">
+            <div class="dashboard-table-container desktop-only-table">
                 <table class="dashboard-table">
                     <thead>
                         <tr>
@@ -191,6 +194,9 @@
                         <tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--color-text-muted);">Loading your listings...</td></tr>
                     </tbody>
                 </table>
+            </div>
+            <div id="listings-cards" class="mobile-only-cards" aria-label="My Equipment Inventory Cards">
+                <div style="text-align:center; padding:2rem; color:var(--color-text-muted);">Loading your listings...</div>
             </div>
         </section>
 
@@ -279,7 +285,7 @@
                 <h3 style="margin:0; font-size:1.25rem;">Incoming Rental Requests</h3>
                 <span style="font-size:0.85rem; color:var(--color-text-muted);">Review customer requests, confirm handovers and returns</span>
             </div>
-            <div class="dashboard-table-container">
+            <div class="dashboard-table-container desktop-only-table">
                 <table class="dashboard-table">
                     <thead>
                         <tr>
@@ -295,6 +301,9 @@
                         <tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--color-text-muted);">Loading incoming requests...</td></tr>
                     </tbody>
                 </table>
+            </div>
+            <div id="requests-cards" class="mobile-only-cards" aria-label="Booking Requests Cards">
+                <div style="text-align:center; padding:2rem; color:var(--color-text-muted);">Loading incoming requests...</div>
             </div>
         </section>
 

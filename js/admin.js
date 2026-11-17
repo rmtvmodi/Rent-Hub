@@ -193,20 +193,8 @@ function renderUsers() {
         return;
     }
 
-    let html = `
-        <table style="width:100%; border-collapse:collapse; min-width:650px;">
-            <thead>
-                <tr style="border-bottom:1px solid var(--color-border); text-align:left; font-size:0.85rem; color:var(--color-text-muted);">
-                    <th style="padding:0.75rem 0.5rem;">User ID</th>
-                    <th style="padding:0.75rem 0.5rem;">Full Name</th>
-                    <th style="padding:0.75rem 0.5rem;">Email Address</th>
-                    <th style="padding:0.75rem 0.5rem;">Role</th>
-                    <th style="padding:0.75rem 0.5rem;">Status</th>
-                    <th style="padding:0.75rem 0.5rem; text-align:right;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
+    let tableRows = '';
+    let mobileCards = '';
 
     users.forEach(u => {
         const uId = u.user_id || u._id;
@@ -214,7 +202,7 @@ function renderUsers() {
         const roleColor = u.role === 'admin' ? 'var(--color-primary)' : u.role === 'owner' ? 'var(--color-secondary)' : '#F1F5F9';
         const isActive = u.isActive !== undefined ? u.isActive : true;
 
-        html += `
+        tableRows += `
             <tr style="border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.9rem;">
                 <td style="padding:0.75rem 0.5rem; font-family:monospace; font-size:0.85rem;">${uId}</td>
                 <td style="padding:0.75rem 0.5rem;"><strong>${u.name}</strong> ${isSelf ? '<span style="font-size:0.75rem; color:var(--color-secondary);">(You)</span>' : ''}</td>
@@ -235,10 +223,63 @@ function renderUsers() {
                 </td>
             </tr>
         `;
+
+        mobileCards += `
+            <div class="dashboard-mobile-card card">
+                <div class="dm-card-header">
+                    <div class="dm-card-title-group">
+                        <h4 class="dm-card-title">${u.name} ${isSelf ? '<span style="font-size:0.75rem; color:var(--color-secondary);">(You)</span>' : ''}</h4>
+                        <span class="dm-card-id">${u.email}</span>
+                    </div>
+                </div>
+                <div class="dm-card-grid">
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Role</span>
+                        <div class="dm-card-val">
+                            <span class="badge" style="background:rgba(255,255,255,0.07); color:${roleColor}; font-weight:600; text-transform:capitalize;">${u.role}</span>
+                        </div>
+                    </div>
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Status</span>
+                        <div class="dm-card-val">
+                            <span class="badge ${isActive ? 'accepted' : 'rejected'}">${isActive ? 'Active' : 'Disabled'}</span>
+                        </div>
+                    </div>
+                    <div class="dm-card-field dm-card-field-full">
+                        <span class="dm-card-label">User ID</span>
+                        <span class="dm-card-val" style="font-family:monospace; font-size:0.8rem;">${uId}</span>
+                    </div>
+                </div>
+                ${isSelf ? '<div style="font-size:0.8rem; color:var(--color-text-muted); padding-top:0.5rem;">Current Admin Session</div>' : `
+                    <div class="dm-card-actions">
+                        <button class="btn toggle-status-btn" data-id="${uId}">
+                            ${isActive ? 'Disable User' : 'Enable User'}
+                        </button>
+                        <button class="btn delete-user-btn" data-id="${uId}" style="color:#FB7185; border-color:rgba(251,113,133,0.3);">Delete</button>
+                    </div>
+                `}
+            </div>
+        `;
     });
 
-    html += `</tbody></table>`;
-    container.innerHTML = html;
+    container.innerHTML = `
+        <div class="desktop-only-table">
+            <table style="width:100%; border-collapse:collapse; min-width:650px;">
+                <thead>
+                    <tr style="border-bottom:1px solid var(--color-border); text-align:left; font-size:0.85rem; color:var(--color-text-muted);">
+                        <th style="padding:0.75rem 0.5rem;">User ID</th>
+                        <th style="padding:0.75rem 0.5rem;">Full Name</th>
+                        <th style="padding:0.75rem 0.5rem;">Email Address</th>
+                        <th style="padding:0.75rem 0.5rem;">Role</th>
+                        <th style="padding:0.75rem 0.5rem;">Status</th>
+                        <th style="padding:0.75rem 0.5rem; text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+            </table>
+        </div>
+        <div class="mobile-only-cards">${mobileCards}</div>
+    `;
 }
 
 /*** Product Management & Moderation ***/
@@ -278,20 +319,8 @@ function renderProducts() {
         return;
     }
 
-    let html = `
-        <table style="width:100%; border-collapse:collapse; min-width:700px;">
-            <thead>
-                <tr style="border-bottom:1px solid var(--color-border); text-align:left; font-size:0.85rem; color:var(--color-text-muted);">
-                    <th style="padding:0.75rem 0.5rem;">Product</th>
-                    <th style="padding:0.75rem 0.5rem;">Owner</th>
-                    <th style="padding:0.75rem 0.5rem;">Category</th>
-                    <th style="padding:0.75rem 0.5rem;">Daily Rate</th>
-                    <th style="padding:0.75rem 0.5rem;">Marketplace Status</th>
-                    <th style="padding:0.75rem 0.5rem; text-align:right;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
+    let tableRows = '';
+    let mobileCards = '';
 
     prods.forEach(p => {
         const pid = p.product_id || p._id;
@@ -304,7 +333,7 @@ function renderProducts() {
                 ? `<span class="badge accepted">● Active & Available</span>`
                 : `<span class="badge" style="background:rgba(255,255,255,0.08); color:var(--color-text-muted);">○ Unavailable</span>`);
 
-        html += `
+        tableRows += `
             <tr style="border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.9rem;">
                 <td style="padding:0.75rem 0.5rem;">
                     <div style="display:flex; align-items:center; gap:0.75rem;">
@@ -333,10 +362,64 @@ function renderProducts() {
                 </td>
             </tr>
         `;
+
+        mobileCards += `
+            <div class="dashboard-mobile-card card">
+                <div class="dm-card-header">
+                    <img src="${p.image}" alt="${p.title}" class="dm-card-img" />
+                    <div class="dm-card-title-group">
+                        <h4 class="dm-card-title">${p.title}</h4>
+                        <span class="dm-card-id">${pid}</span>
+                    </div>
+                </div>
+                <div class="dm-card-grid">
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Owner</span>
+                        <span class="dm-card-val">${ownerName}</span>
+                    </div>
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Category</span>
+                        <span class="dm-card-val">${p.category}</span>
+                    </div>
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Daily Rate</span>
+                        <span class="dm-card-val dm-card-price">₹${p.price_per_day} <small>/day</small></span>
+                    </div>
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Status</span>
+                        <div class="dm-card-val">${statusBadge}</div>
+                    </div>
+                </div>
+                <div class="dm-card-actions">
+                    <button class="btn primary edit-prod-btn" data-id="${pid}">Edit</button>
+                    ${isSuspended
+                        ? `<button class="btn reinstate-prod-btn" data-id="${pid}" style="color:var(--color-secondary); border-color:var(--color-secondary);" title="Reinstate listing">Reinstate</button>`
+                        : `<button class="btn suspend-prod-btn" data-id="${pid}" style="color:#FBBF24; border-color:rgba(251,191,36,0.3);" title="Hide listing from marketplace">Suspend</button>`
+                    }
+                    <button class="btn delete-prod-btn" data-id="${pid}" style="color:#FB7185; border-color:rgba(251,113,133,0.3);">Delete</button>
+                </div>
+            </div>
+        `;
     });
 
-    html += `</tbody></table>`;
-    container.innerHTML = html;
+    container.innerHTML = `
+        <div class="desktop-only-table">
+            <table style="width:100%; border-collapse:collapse; min-width:700px;">
+                <thead>
+                    <tr style="border-bottom:1px solid var(--color-border); text-align:left; font-size:0.85rem; color:var(--color-text-muted);">
+                        <th style="padding:0.75rem 0.5rem;">Product</th>
+                        <th style="padding:0.75rem 0.5rem;">Owner</th>
+                        <th style="padding:0.75rem 0.5rem;">Category</th>
+                        <th style="padding:0.75rem 0.5rem;">Daily Rate</th>
+                        <th style="padding:0.75rem 0.5rem;">Marketplace Status</th>
+                        <th style="padding:0.75rem 0.5rem; text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+            </table>
+        </div>
+        <div class="mobile-only-cards">${mobileCards}</div>
+    `;
 }
 
 async function handleProductForm(e) {
@@ -450,22 +533,8 @@ function renderBookings() {
         return;
     }
 
-    let html = `
-        <table style="width:100%; border-collapse:collapse; min-width:800px;">
-            <thead>
-                <tr style="border-bottom:1px solid var(--color-border); text-align:left; font-size:0.85rem; color:var(--color-text-muted);">
-                    <th style="padding:0.75rem 0.5rem;">Booking ID</th>
-                    <th style="padding:0.75rem 0.5rem;">Customer</th>
-                    <th style="padding:0.75rem 0.5rem;">Product</th>
-                    <th style="padding:0.75rem 0.5rem;">Rental Dates</th>
-                    <th style="padding:0.75rem 0.5rem;">Total</th>
-                    <th style="padding:0.75rem 0.5rem;">Late Fee</th>
-                    <th style="padding:0.75rem 0.5rem;">Status</th>
-                    <th style="padding:0.75rem 0.5rem;">Admin Override</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
+    let tableRows = '';
+    let mobileCards = '';
 
     bookings.forEach(b => {
         const bId = b.booking_id || b._id;
@@ -476,7 +545,7 @@ function renderBookings() {
         const statusOptions = ['Requested', 'Accepted', 'Paid', 'Active Rental', 'Return Requested', 'Completed', 'Cancelled', 'Rejected'];
         const selectHtml = statusOptions.map(opt => `<option value="${opt}" ${b.status === opt ? 'selected' : ''}>${opt}</option>`).join('');
 
-        html += `
+        tableRows += `
             <tr style="border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.9rem;">
                 <td style="padding:0.75rem 0.5rem; font-family:monospace; font-size:0.85rem;">#${bId}</td>
                 <td style="padding:0.75rem 0.5rem;">
@@ -499,10 +568,65 @@ function renderBookings() {
                 </td>
             </tr>
         `;
+
+        mobileCards += `
+            <div class="dashboard-mobile-card card">
+                <div class="dm-card-header">
+                    <div class="dm-card-title-group">
+                        <h4 class="dm-card-title">${prodTitle}</h4>
+                        <span class="dm-card-id">Booking #${bId}</span>
+                    </div>
+                </div>
+                <div class="dm-card-grid">
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Customer</span>
+                        <span class="dm-card-val"><strong>${custName}</strong></span>
+                    </div>
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Total Amount</span>
+                        <span class="dm-card-val dm-card-price">₹${b.total_price}${b.late_fee > 0 ? ` <small style="color:#FB7185;">(+₹${b.late_fee})</small>` : ''}</span>
+                    </div>
+                    <div class="dm-card-field dm-card-field-full">
+                        <span class="dm-card-label">Rental Dates</span>
+                        <span class="dm-card-val">${b.start_date} to ${b.end_date}</span>
+                    </div>
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Current Status</span>
+                        <div class="dm-card-val"><span class="badge ${statusClass}">${b.status}</span></div>
+                    </div>
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Admin Override</span>
+                        <div class="dm-card-val">
+                            <select class="booking-status-select" data-id="${bId}" style="width:100%; padding:0.4rem 0.5rem; font-size:0.85rem; border-radius:var(--radius-sm); background:var(--color-surface); color:var(--color-text-primary); border:1px solid var(--color-border);">
+                                ${selectHtml}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     });
 
-    html += `</tbody></table>`;
-    container.innerHTML = html;
+    container.innerHTML = `
+        <div class="desktop-only-table">
+            <table style="width:100%; border-collapse:collapse; min-width:800px;">
+                <thead>
+                    <tr style="border-bottom:1px solid var(--color-border); text-align:left; font-size:0.85rem; color:var(--color-text-muted);">
+                        <th style="padding:0.75rem 0.5rem;">Booking ID</th>
+                        <th style="padding:0.75rem 0.5rem;">Customer</th>
+                        <th style="padding:0.75rem 0.5rem;">Product</th>
+                        <th style="padding:0.75rem 0.5rem;">Rental Dates</th>
+                        <th style="padding:0.75rem 0.5rem;">Total</th>
+                        <th style="padding:0.75rem 0.5rem;">Late Fee</th>
+                        <th style="padding:0.75rem 0.5rem;">Status</th>
+                        <th style="padding:0.75rem 0.5rem;">Admin Override</th>
+                    </tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+            </table>
+        </div>
+        <div class="mobile-only-cards">${mobileCards}</div>
+    `;
 }
 
 /*** Review Moderation ***/
@@ -531,27 +655,15 @@ function renderReviews() {
         return;
     }
 
-    let html = `
-        <table style="width:100%; border-collapse:collapse; min-width:700px;">
-            <thead>
-                <tr style="border-bottom:1px solid var(--color-border); text-align:left; font-size:0.85rem; color:var(--color-text-muted);">
-                    <th style="padding:0.75rem 0.5rem;">Review ID</th>
-                    <th style="padding:0.75rem 0.5rem;">Customer</th>
-                    <th style="padding:0.75rem 0.5rem;">Product</th>
-                    <th style="padding:0.75rem 0.5rem;">Rating</th>
-                    <th style="padding:0.75rem 0.5rem;">Comment</th>
-                    <th style="padding:0.75rem 0.5rem; text-align:right;">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
+    let tableRows = '';
+    let mobileCards = '';
 
     reviews.forEach(r => {
         const cust = usersMap.get(r.customer_id);
         const prod = prodsMap.get(r.product_id);
         const stars = '★'.repeat(Math.max(1, Math.min(5, r.rating || 5)));
 
-        html += `
+        tableRows += `
             <tr style="border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.9rem;">
                 <td style="padding:0.75rem 0.5rem; font-family:monospace; font-size:0.85rem;">#${r.review_id}</td>
                 <td style="padding:0.75rem 0.5rem;"><strong>${cust ? cust.name : '—'}</strong></td>
@@ -563,10 +675,54 @@ function renderReviews() {
                 </td>
             </tr>
         `;
+
+        mobileCards += `
+            <div class="dashboard-mobile-card card">
+                <div class="dm-card-header">
+                    <div class="dm-card-title-group">
+                        <h4 class="dm-card-title">${prod ? prod.title : 'Product'}</h4>
+                        <span class="dm-card-id">By: <strong>${cust ? cust.name : 'Customer'}</strong></span>
+                    </div>
+                </div>
+                <div class="dm-card-grid">
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Rating</span>
+                        <div class="dm-card-val" style="color:var(--color-secondary); font-size:1.1rem; letter-spacing:1px;">${stars}</div>
+                    </div>
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Review ID</span>
+                        <span class="dm-card-val" style="font-family:monospace; font-size:0.82rem;">#${r.review_id}</span>
+                    </div>
+                    <div class="dm-card-field dm-card-field-full">
+                        <span class="dm-card-label">Customer Comment</span>
+                        <p style="margin:0.25rem 0 0; color:var(--color-text-secondary); font-size:0.9rem; line-height:1.4;">${r.comment || 'No comment provided.'}</p>
+                    </div>
+                </div>
+                <div class="dm-card-actions">
+                    <button class="btn delete-review-btn" data-id="${r.review_id}" style="color:#FB7185; border-color:rgba(251,113,133,0.3);">Delete Review</button>
+                </div>
+            </div>
+        `;
     });
 
-    html += `</tbody></table>`;
-    container.innerHTML = html;
+    container.innerHTML = `
+        <div class="desktop-only-table">
+            <table style="width:100%; border-collapse:collapse; min-width:700px;">
+                <thead>
+                    <tr style="border-bottom:1px solid var(--color-border); text-align:left; font-size:0.85rem; color:var(--color-text-muted);">
+                        <th style="padding:0.75rem 0.5rem;">Review ID</th>
+                        <th style="padding:0.75rem 0.5rem;">Customer</th>
+                        <th style="padding:0.75rem 0.5rem;">Product</th>
+                        <th style="padding:0.75rem 0.5rem;">Rating</th>
+                        <th style="padding:0.75rem 0.5rem;">Comment</th>
+                        <th style="padding:0.75rem 0.5rem; text-align:right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+            </table>
+        </div>
+        <div class="mobile-only-cards">${mobileCards}</div>
+    `;
 }
 
 /*** Action Listeners ***/

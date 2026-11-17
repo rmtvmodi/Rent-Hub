@@ -130,14 +130,20 @@ function renderMetrics() {
 /** TAB 1: Render Rentals */
 function renderRentals() {
     const tbody = document.getElementById('rentals-tbody');
-    if (!tbody) return;
+    const cardsContainer = document.getElementById('rentals-cards');
+    if (!tbody && !cardsContainer) return;
 
     if (liveCustomerBookings.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2.5rem; color:var(--color-text-muted);">You have no rental bookings yet. <a href="products.html" style="color:var(--color-secondary); font-weight:600;">Browse equipment available to rent</a>.</td></tr>`;
+        const emptyHtml = `<div class="empty-state-box" style="text-align:center; padding:2.5rem 1rem; color:var(--color-text-muted); background:var(--color-surface-card); border:1px solid var(--color-border); border-radius:var(--radius); width:100%; box-sizing:border-box;">You have no rental bookings yet. <a href="products.html" style="color:var(--color-secondary); font-weight:600;">Browse equipment available to rent</a>.</div>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6">${emptyHtml}</td></tr>`;
+        if (cardsContainer) cardsContainer.innerHTML = emptyHtml;
         return;
     }
 
-    tbody.innerHTML = liveCustomerBookings.map(b => {
+    const tableRows = [];
+    const mobileCards = [];
+
+    liveCustomerBookings.forEach(b => {
         const id = b._id || b.booking_id;
         const prod = b.product || {};
         const title = prod.title || b.productTitle || 'Rental Item';
@@ -162,20 +168,21 @@ function renderRentals() {
         // Action Buttons
         let actionBtns = '';
         if (status === 'Accepted' && paymentStatus !== 'Paid') {
-            actionBtns += `<button class="btn primary pay-now-btn" data-id="${id}" data-total="${total}" style="font-size:0.8rem; padding:0.35rem 0.65rem;">Pay ₹${total}</button> `;
+            actionBtns += `<button class="btn primary pay-now-btn" data-id="${id}" data-total="${total}">Pay ₹${total}</button> `;
         }
         if (status === 'Pending') {
-            actionBtns += `<button class="btn cancel-booking-btn" data-id="${id}" style="font-size:0.8rem; padding:0.35rem 0.65rem; color:#FB7185; border-color:rgba(251,113,133,0.3);">Cancel</button> `;
+            actionBtns += `<button class="btn cancel-booking-btn" data-id="${id}" style="color:#FB7185; border-color:rgba(251,113,133,0.3);">Cancel</button> `;
         }
         if (status === 'Active Rental') {
-            actionBtns += `<button class="btn request-return-btn" data-id="${id}" style="font-size:0.8rem; padding:0.35rem 0.65rem;">Request Return</button> `;
+            actionBtns += `<button class="btn request-return-btn" data-id="${id}">Request Return</button> `;
         }
         if (status === 'Completed') {
             const prodId = prod._id || b.product_id;
-            actionBtns += `<button class="btn leave-review-btn" data-id="${id}" data-pid="${prodId}" data-title="${title}" style="font-size:0.8rem; padding:0.35rem 0.65rem; color:var(--color-secondary); border-color:var(--color-secondary);">★ Review</button> `;
+            actionBtns += `<button class="btn leave-review-btn" data-id="${id}" data-pid="${prodId}" data-title="${title}" style="color:var(--color-secondary); border-color:var(--color-secondary);">★ Review</button> `;
         }
 
-        return `
+        // 1. Desktop Table Row
+        tableRows.push(`
             <tr>
                 <td>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
@@ -192,21 +199,62 @@ function renderRentals() {
                 <td>${payBadge}</td>
                 <td style="text-align:right;">${actionBtns || '<span style="color:var(--color-text-muted); font-size:0.8rem;">None</span>'}</td>
             </tr>
-        `;
-    }).join('');
+        `);
+
+        // 2. Mobile Responsive Card
+        mobileCards.push(`
+            <div class="dashboard-mobile-card card">
+                <div class="dm-card-header">
+                    <img src="${img}" alt="${title}" class="dm-card-img" />
+                    <div class="dm-card-title-group">
+                        <h4 class="dm-card-title">${title}</h4>
+                        <span class="dm-card-id">Ref: ${id.slice(-6)}</span>
+                    </div>
+                </div>
+                <div class="dm-card-grid">
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Rental Dates</span>
+                        <span class="dm-card-val">${startDate} to ${endDate}</span>
+                    </div>
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Total Amount</span>
+                        <span class="dm-card-val dm-card-price">₹${total}${lateFee > 0 ? ` <small style="color:#FB7185;">(+₹${lateFee})</small>` : ''}</span>
+                    </div>
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Booking Status</span>
+                        <div class="dm-card-val">${statusBadge}</div>
+                    </div>
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Payment</span>
+                        <div class="dm-card-val">${payBadge}</div>
+                    </div>
+                </div>
+                ${actionBtns ? `<div class="dm-card-actions">${actionBtns}</div>` : ''}
+            </div>
+        `);
+    });
+
+    if (tbody) tbody.innerHTML = tableRows.join('');
+    if (cardsContainer) cardsContainer.innerHTML = mobileCards.join('');
 }
 
 /** TAB 2: Render Equipment Listings */
 function renderListings() {
     const tbody = document.getElementById('listings-tbody');
-    if (!tbody) return;
+    const cardsContainer = document.getElementById('listings-cards');
+    if (!tbody && !cardsContainer) return;
 
     if (liveOwnerProducts.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2.5rem; color:var(--color-text-muted);">You have not listed any equipment yet. <button class="btn primary" onclick="document.querySelector('[data-tab=add-product]').click()" style="margin-left:0.5rem; font-size:0.85rem;">+ List an Item</button></td></tr>`;
+        const emptyHtml = `<div class="empty-state-box" style="text-align:center; padding:2.5rem 1rem; color:var(--color-text-muted); background:var(--color-surface-card); border:1px solid var(--color-border); border-radius:var(--radius); width:100%; box-sizing:border-box;">You have not listed any equipment yet. <button class="btn primary" onclick="document.querySelector('[data-tab=add-product]').click()" style="margin-left:0.5rem; font-size:0.85rem;">+ List an Item</button></div>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6">${emptyHtml}</td></tr>`;
+        if (cardsContainer) cardsContainer.innerHTML = emptyHtml;
         return;
     }
 
-    tbody.innerHTML = liveOwnerProducts.map(p => {
+    const tableRows = [];
+    const mobileCards = [];
+
+    liveOwnerProducts.forEach(p => {
         const id = p._id || p.product_id;
         const img = p.image || 'https://via.placeholder.com/80';
         const title = p.title || 'Product';
@@ -228,7 +276,8 @@ function renderListings() {
         const timesRented = rentals.length;
         const rev = rentals.reduce((sum, b) => sum + (Number(b.total_price) || 0) + (Number(b.late_fee) || 0), 0);
 
-        return `
+        // 1. Desktop Table Row
+        tableRows.push(`
             <tr>
                 <td>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
@@ -255,21 +304,68 @@ function renderListings() {
                     </div>
                 </td>
             </tr>
-        `;
-    }).join('');
+        `);
+
+        // 2. Mobile Responsive Card
+        mobileCards.push(`
+            <div class="dashboard-mobile-card card">
+                <div class="dm-card-header">
+                    <img src="${img}" alt="${title}" class="dm-card-img" />
+                    <div class="dm-card-title-group">
+                        <h4 class="dm-card-title">${title}</h4>
+                        <span class="dm-card-id">Ref: ${id.slice(-6)}</span>
+                    </div>
+                </div>
+                <div class="dm-card-grid">
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Category</span>
+                        <span class="dm-card-val">${category}</span>
+                    </div>
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Daily Rate</span>
+                        <span class="dm-card-val dm-card-price">₹${price} <small>/day</small></span>
+                    </div>
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Performance</span>
+                        <span class="dm-card-val">${timesRented} rental${timesRented === 1 ? '' : 's'} (₹${rev.toLocaleString('en-IN')})</span>
+                    </div>
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Status</span>
+                        <div class="dm-card-val">${statusBadge}</div>
+                    </div>
+                </div>
+                <div class="dm-card-actions">
+                    <button class="btn toggle-avail-btn" data-id="${id}">
+                        ${avail ? 'Set Unavailable' : 'Set Available'}
+                    </button>
+                    <button class="btn primary edit-prod-btn" data-id="${id}">Edit</button>
+                    <button class="btn delete-prod-btn" data-id="${id}" style="color:#FB7185; border-color:rgba(251,113,133,0.3);">Delete</button>
+                </div>
+            </div>
+        `);
+    });
+
+    if (tbody) tbody.innerHTML = tableRows.join('');
+    if (cardsContainer) cardsContainer.innerHTML = mobileCards.join('');
 }
 
 /** TAB 4: Render Incoming Booking Requests */
 function renderRequests() {
     const tbody = document.getElementById('requests-tbody');
-    if (!tbody) return;
+    const cardsContainer = document.getElementById('requests-cards');
+    if (!tbody && !cardsContainer) return;
 
     if (liveOwnerRequests.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2.5rem; color:var(--color-text-muted);">No booking requests received yet. Customer requests on your listings will appear here.</td></tr>`;
+        const emptyHtml = `<div class="empty-state-box" style="text-align:center; padding:2.5rem 1rem; color:var(--color-text-muted); background:var(--color-surface-card); border:1px solid var(--color-border); border-radius:var(--radius); width:100%; box-sizing:border-box;">No booking requests received yet. Customer requests on your listings will appear here.</div>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6">${emptyHtml}</td></tr>`;
+        if (cardsContainer) cardsContainer.innerHTML = emptyHtml;
         return;
     }
 
-    tbody.innerHTML = liveOwnerRequests.map(b => {
+    const tableRows = [];
+    const mobileCards = [];
+
+    liveOwnerRequests.forEach(b => {
         const id = b._id || b.booking_id;
         const prod = b.product || {};
         const title = prod.title || b.productTitle || 'Equipment';
@@ -289,17 +385,18 @@ function renderRequests() {
 
         let actionBtns = '';
         if (status === 'Pending') {
-            actionBtns += `<button class="btn primary accept-req-btn" data-id="${id}" style="font-size:0.8rem; padding:0.35rem 0.6rem;">Accept</button> `;
-            actionBtns += `<button class="btn reject-req-btn" data-id="${id}" style="font-size:0.8rem; padding:0.35rem 0.6rem; color:#FB7185; border-color:rgba(251,113,133,0.3);">Reject</button> `;
+            actionBtns += `<button class="btn primary accept-req-btn" data-id="${id}">Accept</button> `;
+            actionBtns += `<button class="btn reject-req-btn" data-id="${id}" style="color:#FB7185; border-color:rgba(251,113,133,0.3);">Reject</button> `;
         }
         if (status === 'Paid') {
-            actionBtns += `<button class="btn primary handover-req-btn" data-id="${id}" style="font-size:0.8rem; padding:0.35rem 0.65rem;">Handover Gear</button> `;
+            actionBtns += `<button class="btn primary handover-req-btn" data-id="${id}">Handover Gear</button> `;
         }
         if (status === 'Active Rental' || status === 'Return Requested') {
-            actionBtns += `<button class="btn confirm-return-btn" data-id="${id}" style="font-size:0.8rem; padding:0.35rem 0.65rem; color:var(--color-secondary); border-color:var(--color-secondary);">Confirm Return</button> `;
+            actionBtns += `<button class="btn confirm-return-btn" data-id="${id}" style="color:var(--color-secondary); border-color:var(--color-secondary);">Confirm Return</button> `;
         }
 
-        return `
+        // 1. Desktop Table Row
+        tableRows.push(`
             <tr>
                 <td><strong>${title}</strong></td>
                 <td style="font-size:0.88rem;">${renter}</td>
@@ -308,8 +405,38 @@ function renderRequests() {
                 <td>${statusBadge}</td>
                 <td style="text-align:right;">${actionBtns || '<span style="color:var(--color-text-muted); font-size:0.8rem;">None</span>'}</td>
             </tr>
-        `;
-    }).join('');
+        `);
+
+        // 2. Mobile Responsive Card
+        mobileCards.push(`
+            <div class="dashboard-mobile-card card">
+                <div class="dm-card-header">
+                    <div class="dm-card-title-group">
+                        <h4 class="dm-card-title">${title}</h4>
+                        <span class="dm-card-id">Renter: <strong>${renter}</strong></span>
+                    </div>
+                </div>
+                <div class="dm-card-grid">
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Dates</span>
+                        <span class="dm-card-val">${startDate} to ${endDate}</span>
+                    </div>
+                    <div class="dm-card-field">
+                        <span class="dm-card-label">Total Rental</span>
+                        <span class="dm-card-val dm-card-price">₹${total}</span>
+                    </div>
+                    <div class="dm-card-field dm-card-field-full">
+                        <span class="dm-card-label">Request Status</span>
+                        <div class="dm-card-val">${statusBadge}</div>
+                    </div>
+                </div>
+                ${actionBtns ? `<div class="dm-card-actions">${actionBtns}</div>` : ''}
+            </div>
+        `);
+    });
+
+    if (tbody) tbody.innerHTML = tableRows.join('');
+    if (cardsContainer) cardsContainer.innerHTML = mobileCards.join('');
 }
 
 /** TAB 5: Render Wishlist */
